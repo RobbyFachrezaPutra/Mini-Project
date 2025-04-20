@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              Int      @id @default(autoincrement())
+  first_name      String   @db.VarChar(50)
+  last_name       String   @db.VarChar(50)
+  email           String   @unique @db.VarChar(50)
+  password        String   @db.VarChar(50)
+  role            String   @db.VarChar(20)
+  refferal_code   String   @db.VarChar(20)
+  profile_picture String
+  created_at      DateTime
+}
+
+model Events {
+  id           Int      @id @default(autoincrement())
+  organizer_id Int
+  name         String   @db.VarChar(50)
+  description  String
+  category     String
+  location     String   @db.VarChar(20)
+  start_date   DateTime
+  end_date     DateTime
+  banner_url   String
+  status       String
+  created_at   DateTime
+}
+
+model Ticket {
+  id          Int      @id @default(autoincrement())
+  event_id    Int
+  name        String
+  price       Decimal
+  quota       Int
+  remaining   Int
+  sales_start DateTime
+  sales_end   DateTime
+}
+
+model Transactions {
+  id            Int      @id @default(autoincrement())
+  user_id       Int
+  event_id      Int
+  ticket_id     Int
+  qty           Int
+  Price         Decimal
+  Total_Price   Decimal
+  status        String
+  payment_proof String
+  created_at    DateTime
+  updated_at    DateTime
+}
+
+model Referral_logs {
+  id               Int      @id @default(autoincrement())
+  referrer_id      Int
+  referred_user_id Int
+  created_at       DateTime
+}
+
+model Vouchers {
+  id              Int      @id @default(autoincrement())
+  event_id        Int
+  code            String
+  discount_amount Decimal
+  created_at      DateTime
+}
+
+model Coupons {
+  id              Int      @id @default(autoincrement())
+  code            String
+  discount_amount Decimal
+  max_usage       Int
+  is_active       Boolean
+  created_at      DateTime
+}
+
+model Coupon_Usage {
+  id             Int      @id @default(autoincrement())
+  coupon_id      Int
+  user_id        Int
+  transaction_id Int
+  assigned_at    DateTime
+  used_at        DateTime
+}
+
+model Points {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  type       String
+  point      Int
+  source     String
+  expired_at DateTime
+  created_at DateTime
+}
+
+model Reviews {
+  id             Int      @id @default(autoincrement())
+  Transaction_Id Int
+  rating         Int
+  comment        String
+  created_at     DateTime
+}
