@@ -9,78 +9,139 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  first_name      String   @db.VarChar(50)
-  last_name       String   @db.VarChar(50)
-  email           String   @unique @db.VarChar(50)
-  password        String   @db.VarChar(50)
-  role            String   @db.VarChar(20)
-  refferal_code   String   @db.VarChar(20)
-  profile_picture String
-  created_at      DateTime
+  id               Int              @id @default(autoincrement())
+  first_name       String           @db.VarChar(50)
+  last_name        String           @db.VarChar(50)
+  email            String           @unique @db.VarChar(50)
+  password         String           @db.VarChar(100)
+  role             String           @db.VarChar(20)
+  referral_code    String?          @db.VarChar(20)
+  profile_picture  String           @db.VarChar(255)
+  created_at       DateTime
+  events           Event[]          @relation("UserEvents")
+  transactions     Transaction[]    @relation("UserTransactions")
+  referralsMades   Referral_log[]   @relation("UserReferrerRelations")
+  referralsJoineds Referral_log[]   @relation("UserReferredRelations")
+  coupons_usages   Coupon_Usage[]   @relation("UserCouponUsages")
+  points           Point[]          @relation("UserPoints")
+  Event_Category   Event_Category[]
+  Ticket           Ticket[]
+  Voucher          Voucher[]
+  Coupon           Coupon[]
+
+  @@map("users")
 }
 
-model Events {
-  id           Int      @id @default(autoincrement())
+model Event_Category {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(50)
+  description   String
+  created_at    DateTime
+  created_by_id Int
+  events        Event[]  @relation("CategoryEvents")
+  created_by    User     @relation(fields: [created_by_id], references: [id])
+
+  @@map("event_categories")
+}
+
+model Event {
+  id           Int            @id @default(autoincrement())
   organizer_id Int
-  name         String   @db.VarChar(50)
+  name         String         @db.VarChar(50)
   description  String
-  category     String
-  location     String   @db.VarChar(20)
+  category_id  Int
+  location     String         @db.VarChar(20)
   start_date   DateTime
   end_date     DateTime
   banner_url   String
-  status       String
+  status       String         @db.VarChar(20)
   created_at   DateTime
+  updated_at   DateTime
+  organizer    User           @relation("UserEvents", fields: [organizer_id], references: [id])
+  category     Event_Category @relation("CategoryEvents", fields: [category_id], references: [id])
+  tickets      Ticket[]       @relation("EventTickets")
+  transactions Transaction[]  @relation("EventTransactions")
+  vouchers     Voucher[]      @relation("EventVouchers")
+
+  @@map("events")
 }
 
 model Ticket {
-  id          Int      @id @default(autoincrement())
-  event_id    Int
-  name        String
-  price       Decimal
-  quota       Int
-  remaining   Int
-  sales_start DateTime
-  sales_end   DateTime
+  id            Int           @id @default(autoincrement())
+  event_id      Int
+  name          String        @db.VarChar(50)
+  price         Decimal
+  quota         Int
+  remaining     Int
+  sales_start   DateTime
+  sales_end     DateTime
+  created_by_id Int
+  created_by    User          @relation(fields: [created_by_id], references: [id])
+  event         Event         @relation("EventTickets", fields: [event_id], references: [id])
+  transactions  Transaction[] @relation("TicketTransactions")
+
+  @@map("tickets")
 }
 
-model Transactions {
+model Transaction {
   id            Int      @id @default(autoincrement())
   user_id       Int
   event_id      Int
   ticket_id     Int
   qty           Int
-  Price         Decimal
-  Total_Price   Decimal
-  status        String
+  price         Decimal
+  total_price   Decimal
+  status        String   @db.VarChar(20)
   payment_proof String
   created_at    DateTime
   updated_at    DateTime
+  user          User     @relation("UserTransactions", fields: [user_id], references: [id])
+  event         Event    @relation("EventTransactions", fields: [event_id], references: [id])
+  ticket        Ticket   @relation("TicketTransactions", fields: [ticket_id], references: [id])
+  reviews       Review[] @relation("TransactionReviews")
+
+  @@map("transactions")
 }
 
-model Referral_logs {
+model Referral_log {
   id               Int      @id @default(autoincrement())
   referrer_id      Int
   referred_user_id Int
   created_at       DateTime
+
+  referrer     User @relation("UserReferrerRelations", fields: [referrer_id], references: [id])
+  referredUser User @relation("UserReferredRelations", fields: [referred_user_id], references: [id])
+
+  @@map("referral_logs")
 }
 
-model Vouchers {
+model Voucher {
   id              Int      @id @default(autoincrement())
   event_id        Int
-  code            String
+  code            String   @db.VarChar(20)
   discount_amount Decimal
   created_at      DateTime
+  updated_at      DateTime
+  created_by_id   Int
+  created_by      User     @relation(fields: [created_by_id], references: [id])
+  event           Event?   @relation("EventVouchers", fields: [event_id], references: [id])
+
+  @@map("vouchers")
 }
 
-model Coupons {
-  id              Int      @id @default(autoincrement())
-  code            String
+model Coupon {
+  id              Int            @id @default(autoincrement())
+  code            String         @db.VarChar(20)
   discount_amount Decimal
   max_usage       Int
   is_active       Boolean
   created_at      DateTime
+  updated_at      DateTime
+  created_by_id   Int
+  created_by      User           @relation(fields: [created_by_id], references: [id])
+  coupon_usage    Coupon_Usage[] @relation("CouponCouponUsages")
+
+  @@map("coupons")
 }
 
 model Coupon_Usage {
@@ -90,22 +151,32 @@ model Coupon_Usage {
   transaction_id Int
   assigned_at    DateTime
   used_at        DateTime
+  coupon         Coupon   @relation("CouponCouponUsages", fields: [coupon_id], references: [id])
+  user           User     @relation("UserCouponUsages", fields: [user_id], references: [id])
+
+  @@map("coupon_usages")
 }
 
-model Points {
+model Point {
   id         Int      @id @default(autoincrement())
   user_id    Int
-  type       String
+  type       String   @db.VarChar(20)
   point      Int
-  source     String
+  source     String   @db.VarChar(50)
   expired_at DateTime
   created_at DateTime
+  user       User?    @relation("UserPoints", fields: [user_id], references: [id])
+
+  @@map("points")
 }
 
-model Reviews {
-  id             Int      @id @default(autoincrement())
-  Transaction_Id Int
+model Review {
+  id             Int          @id @default(autoincrement())
+  transaction_id Int
   rating         Int
   comment        String
   created_at     DateTime
+  transaction    Transaction? @relation("TransactionReviews", fields: [transaction_id], references: [id])
+
+  @@map("reviews")
 }
