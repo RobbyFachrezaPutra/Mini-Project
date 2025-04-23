@@ -1,6 +1,9 @@
-import { IRegisterParam } from "../interface/user.interface";
+import { ILoginParam, IRegisterParam } from "../interface/user.interface";
 import prisma from "../lib/prisma";
-import { hash, genSalt, genSaltSync } from "bcrypt";
+import { hash, genSaltSync, compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
+
+import { SECRET_KEY } from "../config";
 
 function generateReferralCode(firstName: string): string {
   const prefix = firstName.toLowerCase();
@@ -20,6 +23,7 @@ async function findUserByEmail(email: string) {
         first_name: true,
         last_name: true,
         password: true,
+        role: true,
       },
       where: {
         email,
@@ -64,4 +68,29 @@ async function RegisterService(param: IRegisterParam) {
   }
 }
 
-export { RegisterService };
+async function LoginService(param: ILoginParam) {
+  try {
+    const user = await findUserByEmail(param.email);
+
+    if (!user) throw new Error("Email sudah terdaftar");
+
+    const checkPass = await compare(param.password, user.password);
+
+    if (!checkPass) throw new Error("Password Salah");
+
+    const payload = {
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+    };
+
+    const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
+
+    return { user: payload, token };
+  } catch (err) {
+    throw err;
+  }
+}
+
+export { RegisterService, LoginService };

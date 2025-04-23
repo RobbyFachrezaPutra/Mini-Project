@@ -6,3 +6,8 @@ export interface IRegisterParam {
   role: "customer" | "event_organizer";
   referral_code?: string;
 }
+
+export interface ILoginParam {
+  email: string;
+  password: string;
+}

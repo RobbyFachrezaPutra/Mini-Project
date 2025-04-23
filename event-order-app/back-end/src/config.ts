@@ -1,4 +1,9 @@
 import "dotenv/config";
 
-export const { PORT, CLOUDINARY_NAME, CLOUDINARY_KEY, CLOUDINARY_SECRET } =
-  process.env;
+export const {
+  PORT,
+  SECRET_KEY,
+  CLOUDINARY_NAME,
+  CLOUDINARY_KEY,
+  CLOUDINARY_SECRET,
+} = process.env;
