@@ -36,27 +36,29 @@ async function RegisterService(param: IRegisterParam) {
 
     if (isExist) throw new Error("Email sudah terdaftar");
 
-    const salt = genSaltSync(10);
+    const result = await prisma.$transaction(async (prisma) => {
+      const salt = genSaltSync(10);
 
-    const hashedPassword = await hash(param.password, salt);
+      const hashedPassword = await hash(param.password, salt);
 
-    const referralCode = generateReferralCode(param.first_name).slice(0, 20);
-    console.log("Referral Code:", referralCode);
-    console.log("Referral Code Length:", referralCode.length);
+      const referralCode = generateReferralCode(param.first_name).slice(0, 20);
 
-    const user = await prisma.user.create({
-      data: {
-        first_name: param.first_name,
-        last_name: param.last_name,
-        email: param.email,
-        password: hashedPassword,
-        role: param.role,
-        referral_code: referralCode,
-        profile_picture: defaultProfilePicture,
-        created_at: new Date(),
-      },
+      const user = await prisma.user.create({
+        data: {
+          first_name: param.first_name,
+          last_name: param.last_name,
+          email: param.email,
+          password: hashedPassword,
+          role: param.role,
+          referral_code: referralCode,
+          profile_picture: defaultProfilePicture,
+          created_at: new Date(),
+        },
+      });
+
+      return user;
     });
-    return user;
+    return result;
   } catch (err) {
     throw err;
   }
