@@ -3,6 +3,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import { PORT } from "./config";
 
 import AuthRouter from "./routers/auth.router";
+import CouponRouter from "./routers/coupon.router";
 
 const port = PORT || 8000;
 const app: Application = express();
@@ -20,6 +21,7 @@ app.get(
 );
 
 app.use("/auth", AuthRouter);
+app.use("/coupon", CouponRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
