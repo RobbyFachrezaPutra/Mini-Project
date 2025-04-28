@@ -37,6 +37,7 @@ model Event_Category {
   name          String   @db.VarChar(50)
   description   String
   created_at    DateTime
+  updated_at    DateTime
   created_by_id Int
   events        Event[]  @relation("CategoryEvents")
   created_by    User     @relation(fields: [created_by_id], references: [id])
@@ -45,23 +46,24 @@ model Event_Category {
 }
 
 model Event {
-  id           Int            @id @default(autoincrement())
-  organizer_id Int
-  name         String         @db.VarChar(50)
-  description  String
-  category_id  Int
-  location     String         @db.VarChar(20)
-  start_date   DateTime
-  end_date     DateTime
-  banner_url   String
-  status       String         @db.VarChar(20)
-  created_at   DateTime
-  updated_at   DateTime
-  organizer    User           @relation("UserEvents", fields: [organizer_id], references: [id])
-  category     Event_Category @relation("CategoryEvents", fields: [category_id], references: [id])
-  tickets      Ticket[]       @relation("EventTickets")
-  transactions Transaction[]  @relation("EventTransactions")
-  vouchers     Voucher[]      @relation("EventVouchers")
+  id              Int            @id @default(autoincrement())
+  organizer_id    Int
+  name            String         @db.VarChar(50)
+  description     String
+  category_id     Int
+  location        String         @db.VarChar(20)
+  start_date      DateTime
+  end_date        DateTime
+  available_seats Int
+  banner_url      String
+  status          String         @db.VarChar(20)
+  created_at      DateTime
+  updated_at      DateTime
+  organizer       User           @relation("UserEvents", fields: [organizer_id], references: [id])
+  category        Event_Category @relation("CategoryEvents", fields: [category_id], references: [id])
+  tickets         Ticket[]       @relation("EventTickets")
+  transactions    Transaction[]  @relation("EventTransactions")
+  vouchers        Voucher[]      @relation("EventVouchers")
 
   @@map("events")
 }
@@ -70,11 +72,14 @@ model Ticket {
   id            Int           @id @default(autoincrement())
   event_id      Int
   name          String        @db.VarChar(50)
+  type          String        @db.VarChar(50)
   price         Decimal
   quota         Int
   remaining     Int
   sales_start   DateTime
   sales_end     DateTime
+  created_at    DateTime
+  updated_at    DateTime
   created_by_id Int
   created_by    User          @relation(fields: [created_by_id], references: [id])
   event         Event         @relation("EventTickets", fields: [event_id], references: [id])
@@ -137,6 +142,7 @@ model Coupon {
   is_active       Boolean
   created_at      DateTime
   updated_at      DateTime
+  expired_at      DateTime
   created_by_id   Int
   created_by      User           @relation(fields: [created_by_id], references: [id])
   coupon_usage    Coupon_Usage[] @relation("CouponCouponUsages")
