@@ -1,6 +1,17 @@
-import { IRegisterParam } from "../interface/user.interface";
+import { ILoginParam, IRegisterParam } from "../interface/user.interface";
 import prisma from "../lib/prisma";
-import { hash, genSalt, genSaltSync } from "bcrypt";
+import { hash, genSaltSync, compare } from "bcrypt";
+import { sign } from "jsonwebtoken";
+
+import { SECRET_KEY } from "../config";
+
+async function GetAll() {
+  try {
+    return await prisma.user.findMany();
+  } catch (err) {
+    throw err;
+  }
+}
 
 function generateReferralCode(firstName: string): string {
   const prefix = firstName.toLowerCase();
@@ -20,6 +31,7 @@ async function findUserByEmail(email: string) {
         first_name: true,
         last_name: true,
         password: true,
+        role: true,
       },
       where: {
         email,
@@ -36,7 +48,9 @@ async function RegisterService(param: IRegisterParam) {
 
     if (isExist) throw new Error("Email sudah terdaftar");
 
-    const result = await prisma.$transaction(async (prisma) => {
+    const result = await prisma.$transaction(async (tx) => {
+      const { referral_code } = param;
+
       const salt = genSaltSync(10);
 
       const hashedPassword = await hash(param.password, salt);
@@ -56,6 +70,34 @@ async function RegisterService(param: IRegisterParam) {
         },
       });
 
+      if (referral_code) {
+        const referrer = await tx.user.findFirst({
+          where: { referral_code: referral_code },
+        });
+        if (referrer) {
+          await tx.referral_log.create({
+            data: {
+              referrer_id: referrer.id,
+              referred_user_id: user.id,
+              created_at: new Date(),
+            },
+          });
+
+          await tx.point.create({
+            data: {
+              user_id: referrer.id,
+              type: "referral",
+              point: 10000,
+              source: "referral_bonus", // dari bonus referral
+              expired_at: new Date(
+                new Date().setMonth(new Date().getMonth() + 3)
+              ), // expired 3 bulan
+              created_at: new Date(),
+            },
+          });
+        }
+      }
+
       return user;
     });
     return result;
@@ -64,4 +106,29 @@ async function RegisterService(param: IRegisterParam) {
   }
 }
 
-export { RegisterService };
+async function LoginService(param: ILoginParam) {
+  try {
+    const user = await findUserByEmail(param.email);
+
+    if (!user) throw new Error("Email belum terdaftar");
+
+    const checkPass = await compare(param.password, user.password);
+
+    if (!checkPass) throw new Error("Password Salah");
+
+    const payload = {
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+    };
+
+    const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
+
+    return { user: payload, token };
+  } catch (err) {
+    throw err;
+  }
+}
+
+export { RegisterService, LoginService, GetAll };
