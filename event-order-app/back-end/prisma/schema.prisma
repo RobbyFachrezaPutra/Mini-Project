@@ -124,7 +124,10 @@ model Voucher {
   id              Int      @id @default(autoincrement())
   event_id        Int
   code            String   @db.VarChar(20)
+  description     String
   discount_amount Decimal
+  sales_start     DateTime
+  sales_end       DateTime
   created_at      DateTime
   updated_at      DateTime
   created_by_id   Int

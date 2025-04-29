@@ -7,9 +7,11 @@ import CouponRouter from "./routers/coupon.router";
 import eventCategoryRouter from "./routers/event-category.router";
 import eventRouter from "./routers/event.router";
 import ticketRouter from "./routers/ticket.router";
+import voucherRouter from "./routers/voucher.router";
 
 const port = PORT || 8000;
 const app: Application = express();
+const base_uri : string = "/api/eventorder";
 
 app.use(express.json());
 app.get(
@@ -23,11 +25,12 @@ app.get(
   }
 );
 
-app.use("/api/eventorder/auth", AuthRouter);
-app.use("/api/eventorder/coupon", CouponRouter);
-app.use("/api/eventorder/event-categories", eventCategoryRouter);
-app.use("/api/eventorder/events", eventRouter);
-app.use("/api/eventorder/tickets", ticketRouter);
+app.use(`${base_uri}/auth`, AuthRouter);
+app.use(`${base_uri}/coupon`, CouponRouter);
+app.use(`${base_uri}/event-categories`, eventCategoryRouter);
+app.use(`${base_uri}/events`, eventRouter);
+app.use(`${base_uri}/tickets`, ticketRouter);
+app.use(`${base_uri}/vouchers`, voucherRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);

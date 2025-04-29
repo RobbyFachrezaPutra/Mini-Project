@@ -35,4 +35,18 @@ async function requireEventOrganizerRole(
   }
 }
 
-export { VerifyToken, requireEventOrganizerRole };
+async function requireAdminRole(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    if (req.user?.role !== "admin")
+      throw new Error("Access forbidden: Only Admin allowed");
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { VerifyToken, requireEventOrganizerRole, requireAdminRole };

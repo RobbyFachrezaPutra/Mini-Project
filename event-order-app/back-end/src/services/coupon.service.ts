@@ -1,3 +1,4 @@
+import { date } from "zod";
 import { ICoupon } from "../interface/coupon.interface";
 import prisma from "../lib/prisma";
 
@@ -12,6 +13,7 @@ async function CouponService(data: ICoupon) {
         created_by_id: data.created_by_id,
         created_at: new Date(),
         updated_at: new Date(),
+        expired_at: Date()
       },
     });
     return coupon;
