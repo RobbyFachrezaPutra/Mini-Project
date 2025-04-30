@@ -2,6 +2,7 @@ import { ICoupon } from "../interface/coupon.interface";
 import prisma from "../lib/prisma";
 
 async function CouponService(data: ICoupon) {
+  const expiredAt = new Date(new Date().setMonth(new Date().getMonth() + 3));
   try {
     const coupon = await prisma.coupon.create({
       data: {
@@ -12,6 +13,7 @@ async function CouponService(data: ICoupon) {
         created_by_id: data.created_by_id,
         created_at: new Date(),
         updated_at: new Date(),
+        expired_at: expiredAt,
       },
     });
     return coupon;

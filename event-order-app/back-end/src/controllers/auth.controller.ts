@@ -32,10 +32,17 @@ async function LoginController(
   try {
     const data = await LoginService(req.body);
 
-    res.status(200).cookie("acces_token", data.token).send({
-      message: "Login Berhasil",
-      data: data.user,
-    });
+    res
+      .status(200)
+      .cookie("acces_token", data.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      })
+      .send({
+        message: "Login Berhasil",
+        data: data.user,
+      });
   } catch (err) {
     next(err);
   }
