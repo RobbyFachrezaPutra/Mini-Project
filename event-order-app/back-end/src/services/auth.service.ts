@@ -46,7 +46,13 @@ async function RegisterService(param: IRegisterParam) {
   try {
     const isExist = await findUserByEmail(param.email);
 
-    if (isExist) throw new Error("Email sudah terdaftar");
+    if (isExist) {
+      return {
+        status: false,
+        code: 404,
+        message: "Email sudah terdaftar",
+      };
+    }
 
     const result = await prisma.$transaction(async (tx) => {
       const { referral_code } = param;
@@ -115,13 +121,13 @@ async function LoginService(param: ILoginParam) {
         message: "Email belum terdaftar",
       };
     }
-  
+
     const checkPass = await compare(param.password, user.password);
-  
+
     if (!checkPass) {
       return {
         status: false,
-        code: 401,
+        code: 404,
         message: "Password salah",
       };
     }
