@@ -92,9 +92,7 @@ async function RegisterService(param: IRegisterParam) {
           await tx.point.create({
             data: {
               user_id: referrer.id,
-              type: "referral",
               point: 10000,
-              source: "referral_bonus", // dari bonus referral
               expired_at: new Date(
                 new Date().setMonth(new Date().getMonth() + 3)
               ), // expired 3 bulan

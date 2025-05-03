@@ -27,12 +27,30 @@ async function requireEventOrganizerRole(
   next: NextFunction
 ) {
   try {
-    if (req.user?.role !== "event_organizer")
-      throw new Error("Access forbidden: Only event organizers allowed");
-    next();
+    res.status(401).json({
+      message: "Access Unauthorized",
+      details: "You must be an event organizer to access this resource",
+    });
+    return;
   } catch (err) {
     next(err);
   }
 }
 
-export { VerifyToken, requireEventOrganizerRole };
+async function requireAdminRole(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (req.user?.role !== "admin") {
+    res.status(401).json({
+      message: "Access Unauthorized",
+      details: "You must be an admin to access this resource",
+    });
+    return;
+  }
+
+  next();
+}
+
+export { VerifyToken, requireEventOrganizerRole, requireAdminRole };
