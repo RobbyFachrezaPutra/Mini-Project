@@ -86,9 +86,7 @@ async function RegisterService(param: IRegisterParam) {
           await tx.point.create({
             data: {
               user_id: referrer.id,
-              type: "referral",
               point: 10000,
-              source: "referral_bonus", // dari bonus referral
               expired_at: new Date(
                 new Date().setMonth(new Date().getMonth() + 3)
               ), // expired 3 bulan
@@ -110,11 +108,23 @@ async function LoginService(param: ILoginParam) {
   try {
     const user = await findUserByEmail(param.email);
 
-    if (!user) throw new Error("Email belum terdaftar");
-
+    if (!user) {
+      return {
+        status: false,
+        code: 404,
+        message: "Email belum terdaftar",
+      };
+    }
+  
     const checkPass = await compare(param.password, user.password);
-
-    if (!checkPass) throw new Error("Password Salah");
+  
+    if (!checkPass) {
+      return {
+        status: false,
+        code: 401,
+        message: "Password salah",
+      };
+    }
 
     const payload = {
       email: user.email,

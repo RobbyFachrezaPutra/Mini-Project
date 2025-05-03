@@ -32,9 +32,14 @@ async function LoginController(
   try {
     const data = await LoginService(req.body);
 
-    res.status(200).cookie("acces_token", data.token).send({
+    if (!data) {
+      res.status(404).send({
+        message: "email tidak ditemukan"
+      });  
+    }
+    res.status(200).cookie("acces_token", data?.token).send({
       message: "Login Berhasil",
-      data: data.user,
+      data: data?.user,
     });
   } catch (err) {
     next(err);

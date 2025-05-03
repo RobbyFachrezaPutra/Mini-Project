@@ -93,9 +93,15 @@ model Transaction {
   user_id       Int
   event_id      Int
   ticket_id     Int
+  voucher_id    Int
+  coupon_id     Int
   qty           Int
   price         Decimal
   total_price   Decimal
+  voucher_amount Decimal
+  point_amount  Decimal
+  coupon_amount Decimal
+  final_price   Decimal
   status        String   @db.VarChar(20)
   payment_proof String
   created_at    DateTime
@@ -103,7 +109,10 @@ model Transaction {
   user          User     @relation("UserTransactions", fields: [user_id], references: [id])
   event         Event    @relation("EventTransactions", fields: [event_id], references: [id])
   ticket        Ticket   @relation("TicketTransactions", fields: [ticket_id], references: [id])
+  voucher       Voucher  @relation("VoucherTransactions", fields: [voucher_id], references: [id])
+  coupon        Coupon  @relation("CouponTransactions", fields: [coupon_id], references: [id])
   reviews       Review[] @relation("TransactionReviews")
+  coupon_usage  Coupon_Usage[] @relation("TransactionCouponUsages")
 
   @@map("transactions")
 }
@@ -133,6 +142,7 @@ model Voucher {
   created_by_id   Int
   created_by      User     @relation(fields: [created_by_id], references: [id])
   event           Event?   @relation("EventVouchers", fields: [event_id], references: [id])
+  transactions    Transaction[] @relation("VoucherTransactions")
 
   @@map("vouchers")
 }
@@ -149,6 +159,7 @@ model Coupon {
   created_by_id   Int
   created_by      User           @relation(fields: [created_by_id], references: [id])
   coupon_usage    Coupon_Usage[] @relation("CouponCouponUsages")
+  transactions    Transaction[] @relation("CouponTransactions")
 
   @@map("coupons")
 }
@@ -157,21 +168,20 @@ model Coupon_Usage {
   id             Int      @id @default(autoincrement())
   coupon_id      Int
   user_id        Int
-  transaction_id Int
+  transaction_id Int      @unique
   assigned_at    DateTime
   used_at        DateTime
   coupon         Coupon   @relation("CouponCouponUsages", fields: [coupon_id], references: [id])
   user           User     @relation("UserCouponUsages", fields: [user_id], references: [id])
+  transaction    Transaction     @relation("TransactionCouponUsages", fields: [transaction_id], references: [id])
 
   @@map("coupon_usages")
 }
 
 model Point {
   id         Int      @id @default(autoincrement())
-  user_id    Int
-  type       String   @db.VarChar(20)
+  user_id    Int      @unique
   point      Int
-  source     String   @db.VarChar(50)
   expired_at DateTime
   created_at DateTime
   user       User?    @relation("UserPoints", fields: [user_id], references: [id])

@@ -4,15 +4,15 @@ import ReqValidator from "../middlewares/validator.middleware";
 import { ticketSchema } from "../schemas/ticket.schema";
 import {
   VerifyToken,
-  requireAdminRole
+  requireEventOrganizerRole
 } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/", VerifyToken, requireAdminRole, ReqValidator(ticketSchema),  CreateTicketController);
+router.post("/", VerifyToken, requireEventOrganizerRole, ReqValidator(ticketSchema),  CreateTicketController);
 router.get("/", VerifyToken, GetAllTicketController);
 router.get("/:id", VerifyToken, GetTicketController);
-router.put("/:id", VerifyToken, requireAdminRole, ReqValidator(ticketSchema),  UpdateTicketController);
-router.delete("/:id", VerifyToken, requireAdminRole, DeleteTicketController);
+router.put("/:id", VerifyToken, requireEventOrganizerRole, ReqValidator(ticketSchema),  UpdateTicketController);
+router.delete("/:id", VerifyToken, requireEventOrganizerRole, DeleteTicketController);
 
 export default router;
