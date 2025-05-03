@@ -1,6 +1,7 @@
+import cors from "cors";
 import express, { Application, Request, Response, NextFunction } from "express";
 
-import { PORT } from "./config";
+import { PORT, FE_URL } from "./config";
 
 import AuthRouter from "./routers/auth.router";
 import CouponRouter from "./routers/coupon.router";
@@ -13,6 +14,13 @@ import transactionRouter from "./routers/transaction.router";
 const port = PORT || 8001;
 const app: Application = express();
 const base_url : string = "/api/eventorder";
+
+app.use(
+  cors({
+    origin: FE_URL,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.get(
