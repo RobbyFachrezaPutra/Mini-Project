@@ -10,10 +10,11 @@ import eventRouter from "./routers/event.router";
 import ticketRouter from "./routers/ticket.router";
 import voucherRouter from "./routers/voucher.router";
 import transactionRouter from "./routers/transaction.router";
+import ProfileRouter from "./routers/profile.router";
 
 const port = PORT || 8001;
 const app: Application = express();
-const base_url : string = "/api/eventorder";
+const base_url: string = "/api/eventorder";
 
 app.use(
   cors({
@@ -41,6 +42,7 @@ app.use(`${base_url}/events`, eventRouter);
 app.use(`${base_url}/tickets`, ticketRouter);
 app.use(`${base_url}/vouchers`, voucherRouter);
 app.use(`${base_url}/transactions`, transactionRouter);
+app.use(`${base_url}/profile`, ProfileRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
