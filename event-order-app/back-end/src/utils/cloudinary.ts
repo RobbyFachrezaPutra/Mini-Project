@@ -7,4 +7,13 @@ cloudinary.config({
   api_secret: CLOUDINARY_SECRET || "",
 });
 
-export default cloudinary;
+export const uploadImageToCloudinary = (file: Express.Multer.File) => {
+  return new Promise<any>((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ resource_type: "auto" }, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      })
+      .end(file.buffer);
+  });
+};

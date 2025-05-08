@@ -30,6 +30,7 @@ async function findUserByEmail(email: string) {
         email: true,
         first_name: true,
         last_name: true,
+        profile_picture: true,
         password: true,
         role: true,
       },
@@ -140,8 +141,14 @@ async function LoginService(param: ILoginParam) {
     };
 
     const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
-
-    return { user: payload, token };
+    const data = {
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      profile_picture: user.profile_picture,
+    };
+    return { user: data, token };
   } catch (err) {
     throw err;
   }
