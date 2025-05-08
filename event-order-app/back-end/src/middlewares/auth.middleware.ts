@@ -5,9 +5,15 @@ import { SECRET_KEY } from "../config";
 
 async function VerifyToken(req: Request, res: Response, next: NextFunction) {
   try {
-    const token = req.header("Authorization")?.replace("Bearer ", "");
-
-    if (!token) throw new Error("Unauthorized");
+    // const token = req.header("Authorization")?.replace("Bearer ", "");
+    const token = req.cookies.acces_token;
+    if (!token) {     
+      res.status(401).json({
+      message: "Access Unauthorized",
+      details: "You must login to access this resource",
+      });
+      return;
+    };
 
     const verifyUser = verify(token, String(SECRET_KEY));
 

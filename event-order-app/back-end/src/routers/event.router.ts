@@ -10,7 +10,7 @@ import {
 const router = Router();
 
 router.post("/", VerifyToken, requireEventOrganizerRole, ReqValidator(eventSchema),  CreateEventController);
-router.get("/", VerifyToken, GetAllEventController);
+router.get("/", GetAllEventController);
 router.get("/:id", VerifyToken, GetEventController);
 router.put("/:id", VerifyToken, requireEventOrganizerRole, ReqValidator(eventSchema),  UpdateEventController);
 router.delete("/:id", VerifyToken, requireEventOrganizerRole, DeleteEventController);

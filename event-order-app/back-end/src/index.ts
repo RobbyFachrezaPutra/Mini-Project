@@ -10,11 +10,13 @@ import eventRouter from "./routers/event.router";
 import ticketRouter from "./routers/ticket.router";
 import voucherRouter from "./routers/voucher.router";
 import transactionRouter from "./routers/transaction.router";
+import cookieParser = require("cookie-parser");
 
 const port = PORT || 8001;
 const app: Application = express();
 const base_url : string = "/api/eventorder";
 
+app.use(cookieParser());
 app.use(
   cors({
     origin: FE_URL,
