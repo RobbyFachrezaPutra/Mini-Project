@@ -1,6 +1,8 @@
 import prisma from "../lib/prisma";
-import { IProfileResponse } from "../interface/profile.interface";
-import { uploadImageToCloudinary } from "../utils/cloudinary";
+import {
+  uploadImageToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinary";
 
 async function getProfileService(email: string) {
   const user = await prisma.user.findUnique({
@@ -25,21 +27,48 @@ async function getProfileService(email: string) {
   return user;
 }
 
-async function editProfileService(
+async function updateProfileService(
   email: string,
-  data: IProfileResponse,
+  data: {
+    first_name?: string;
+    last_name?: string;
+    profile_picture?: string;
+    referral_code?: string;
+  },
   file?: Express.Multer.File
 ) {
   if (file) {
     const uploadResult = await uploadImageToCloudinary(file);
     data.profile_picture = uploadResult?.secure_url;
   }
-  const updatedUser = await prisma.user.update({
+
+  return await prisma.user.update({
     where: { email },
     data,
   });
-
-  return updatedUser;
 }
 
-export { getProfileService, editProfileService };
+async function deleteProfilePictureService(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { profile_picture: true },
+  });
+
+  if (
+    user?.profile_picture &&
+    user.profile_picture !== "/default-profile.png"
+  ) {
+    try {
+      await deleteFromCloudinary(user.profile_picture);
+    } catch (err) {
+      console.error("Failed to delete from Cloudinary:", err);
+    }
+  }
+
+  return await prisma.user.update({
+    where: { email },
+    data: { profile_picture: "/default-profile.png" },
+  });
+}
+
+export { getProfileService, updateProfileService, deleteProfilePictureService };

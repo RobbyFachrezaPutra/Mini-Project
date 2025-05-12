@@ -33,6 +33,14 @@ async function LoginController(
   try {
     const data = await LoginService(req.body);
 
+    if (data.status === false) {
+      res.status(data.code).send({
+        message: data.message,
+        data: null,
+      });
+      return;
+    }
+
     res.status(200).
     cookie("access_token", data.token).
     cookie("refresh_token", data.refreshToken, {

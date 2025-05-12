@@ -17,3 +17,20 @@ export const uploadImageToCloudinary = (file: Express.Multer.File) => {
       .end(file.buffer);
   });
 };
+
+export async function deleteFromCloudinary(imageUrl: string) {
+  try {
+    // Ekstrak public_id dari URL
+    const publicId = imageUrl.split("/").slice(-2).join("/").split(".")[0];
+
+    if (!publicId) {
+      throw new Error("Invalid Cloudinary URL");
+    }
+
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result.result === "ok";
+  } catch (err) {
+    console.error("Failed to delete from Cloudinary:", err);
+    throw err;
+  }
+}

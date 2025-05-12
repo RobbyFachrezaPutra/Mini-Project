@@ -13,6 +13,8 @@ import transactionRouter from "./routers/transaction.router";
 import cookieParser = require("cookie-parser");
 import ProfileRouter from "./routers/profile.router";
 import pointRouter from "./routers/point.router";
+import ResetPasswordRouter from "./routers/reset-password.router";
+
 const port = PORT || 8001;
 const app: Application = express();
 const base_url: string = "/api/eventorder";
@@ -46,6 +48,7 @@ app.use(`${base_url}/tickets`, ticketRouter);
 app.use(`${base_url}/vouchers`, voucherRouter);
 app.use(`${base_url}/transactions`, transactionRouter);
 app.use(`${base_url}/profile`, ProfileRouter);
+app.use(`${base_url}/reset-password`, ResetPasswordRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
