@@ -4,7 +4,8 @@ import {
   GetAllVoucherController, 
   GetVoucherController, 
   UpdateVoucherController, 
-  DeleteVoucherController 
+  DeleteVoucherController, 
+  GetVoucherByEventIdController
 } from "../controllers/voucher.controller";
 import ReqValidator from "../middlewares/validator.middleware";
 import { voucherSchema } from "../schemas/voucher.schema";
@@ -17,6 +18,7 @@ const router = Router();
 
 router.post("/", VerifyToken, requireEventOrganizerRole, ReqValidator(voucherSchema),  CreateVoucherController);
 router.get("/", VerifyToken, GetAllVoucherController);
+router.get("/by-event/:event_id", VerifyToken, GetVoucherByEventIdController);
 router.get("/:id", VerifyToken, GetVoucherController);
 router.put("/:id", VerifyToken, requireEventOrganizerRole, ReqValidator(voucherSchema),  UpdateVoucherController);
 router.delete("/:id", VerifyToken, requireEventOrganizerRole, DeleteVoucherController);

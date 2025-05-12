@@ -9,9 +9,9 @@ import {
 
 const router = Router();
 
-router.post("/", VerifyToken, requireAdminRole, ReqValidator(eventCategorySchema),  CreateEventCategoryController);
+router.post("/", VerifyToken, ReqValidator(eventCategorySchema),  CreateEventCategoryController);
+router.get("/", GetAllEventCategoryController);
 router.get("/:id", VerifyToken, GetEventCategoryController);
-router.get("/", VerifyToken, GetAllEventCategoryController);
 router.put("/:id", VerifyToken, requireAdminRole, ReqValidator(eventCategorySchema),  UpdateEventCategoryController);
 
 export default router;

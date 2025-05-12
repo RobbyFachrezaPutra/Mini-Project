@@ -10,5 +10,5 @@ export const eventSchema = z.object({
       message: "Available seats must be greater than 0",
       path: ["available_seats"],
     }),
-  status: z.enum(["draft", "publish"]),
+  status: z.enum(["Draft", "Publish"]),
 });

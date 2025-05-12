@@ -4,7 +4,9 @@ import {
   GetVoucherService, 
   GetAllVoucherService, 
   UpdateVoucherService, 
-  DeleteVoucherService } from "../services/voucher.service";
+  DeleteVoucherService,
+  GetVoucherByEventIdService
+} from "../services/voucher.service";
 
 async function CreateVoucherController(
   req: Request,
@@ -91,5 +93,28 @@ async function DeleteVoucherController(
   }
 }
 
+async function GetVoucherByEventIdController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data = await GetVoucherByEventIdService(Number(req.params.event_id));
 
-export { CreateVoucherController, GetVoucherController, GetAllVoucherController, UpdateVoucherController, DeleteVoucherController };
+    res.status(200).send({
+      message: `Get Voucher with event id ${req.params.event_id}`,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { 
+  CreateVoucherController, 
+  GetVoucherController, 
+  GetAllVoucherController, 
+  UpdateVoucherController, 
+  DeleteVoucherController,
+  GetVoucherByEventIdController  
+ };

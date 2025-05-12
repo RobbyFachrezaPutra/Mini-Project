@@ -10,13 +10,16 @@ import eventRouter from "./routers/event.router";
 import ticketRouter from "./routers/ticket.router";
 import voucherRouter from "./routers/voucher.router";
 import transactionRouter from "./routers/transaction.router";
+import cookieParser = require("cookie-parser");
 import ProfileRouter from "./routers/profile.router";
+import pointRouter from "./routers/point.router";
 import ResetPasswordRouter from "./routers/reset-password.router";
 
 const port = PORT || 8001;
 const app: Application = express();
 const base_url: string = "/api/eventorder";
 
+app.use(cookieParser());
 app.use(
   cors({
     origin: FE_URL,
@@ -37,6 +40,7 @@ app.get(
 );
 
 app.use(`${base_url}/auth`, AuthRouter);
+app.use(`${base_url}/points`, pointRouter);
 app.use(`${base_url}/coupons`, CouponRouter);
 app.use(`${base_url}/event-categories`, eventCategoryRouter);
 app.use(`${base_url}/events`, eventRouter);
