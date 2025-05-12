@@ -27,12 +27,14 @@ async function findUserByEmail(email: string) {
   try {
     const user = await prisma.user.findFirst({
       select: {
+        id: true,
         email: true,
         first_name: true,
         last_name: true,
         profile_picture: true,
         password: true,
         role: true,
+        referral_code: true,
       },
       where: {
         email,
@@ -134,19 +136,23 @@ async function LoginService(param: ILoginParam) {
     }
 
     const payload = {
+      id: user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
+      referral_code: user,
     };
 
     const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
     const data = {
+      id: user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
       profile_picture: user.profile_picture,
+      referral_code: user.referral_code,
     };
     return { user: data, token };
   } catch (err) {
