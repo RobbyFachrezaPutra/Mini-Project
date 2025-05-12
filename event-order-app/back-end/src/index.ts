@@ -12,6 +12,7 @@ import voucherRouter from "./routers/voucher.router";
 import transactionRouter from "./routers/transaction.router";
 import ProfileRouter from "./routers/profile.router";
 import ResetPasswordRouter from "./routers/reset-password.router";
+import pointRouter from "./routers/point.router";
 
 const port = PORT || 8001;
 const app: Application = express();
@@ -45,6 +46,7 @@ app.use(`${base_url}/vouchers`, voucherRouter);
 app.use(`${base_url}/transactions`, transactionRouter);
 app.use(`${base_url}/profile`, ProfileRouter);
 app.use(`${base_url}/reset-password`, ResetPasswordRouter);
+app.use(`${base_url}/points`, pointRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);
