@@ -14,7 +14,6 @@ import cookieParser = require("cookie-parser");
 import ProfileRouter from "./routers/profile.router";
 import pointRouter from "./routers/point.router";
 import ResetPasswordRouter from "./routers/reset-password.router";
-import pointRouter from "./routers/point.router";
 
 const port = PORT || 8001;
 const app: Application = express();
@@ -41,7 +40,6 @@ app.get(
 );
 
 app.use(`${base_url}/auth`, AuthRouter);
-app.use(`${base_url}/points`, pointRouter);
 app.use(`${base_url}/coupons`, CouponRouter);
 app.use(`${base_url}/event-categories`, eventCategoryRouter);
 app.use(`${base_url}/events`, eventRouter);
