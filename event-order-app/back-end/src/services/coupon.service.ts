@@ -89,4 +89,21 @@ async function DeleteCouponService(id : number) {
   }
 }
 
-export { CreateCouponService, GetAllCouponService, GetCouponService, UpdateCouponService, DeleteCouponService };
+async function GetCouponByUserIdService(userid : number) {
+  try {
+    const coupon = await prisma.coupon.findMany({
+      where : { 
+        created_by_id : userid,
+        expired_at: {
+          gt: new Date(),
+        },
+       }
+    },
+  );
+    return coupon;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export {GetCouponByUserIdService, CreateCouponService, GetAllCouponService, GetCouponService, UpdateCouponService, DeleteCouponService };

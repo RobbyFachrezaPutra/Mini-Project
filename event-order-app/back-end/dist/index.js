@@ -14,6 +14,7 @@ const ticket_router_1 = __importDefault(require("./routers/ticket.router"));
 const voucher_router_1 = __importDefault(require("./routers/voucher.router"));
 const transaction_router_1 = __importDefault(require("./routers/transaction.router"));
 const cookieParser = require("cookie-parser");
+const profile_router_1 = __importDefault(require("./routers/profile.router"));
 const port = config_1.PORT || 8001;
 const app = (0, express_1.default)();
 const base_url = "/api/eventorder";
@@ -36,6 +37,7 @@ app.use(`${base_url}/events`, event_router_1.default);
 app.use(`${base_url}/tickets`, ticket_router_1.default);
 app.use(`${base_url}/vouchers`, voucher_router_1.default);
 app.use(`${base_url}/transactions`, transaction_router_1.default);
+app.use(`${base_url}/profile`, profile_router_1.default);
 app.listen(port, () => {
     console.log(`Server started on port ${port}`);
 });

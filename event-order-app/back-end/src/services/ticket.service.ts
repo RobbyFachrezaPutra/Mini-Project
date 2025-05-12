@@ -10,6 +10,7 @@ async function CreateTicketService(param : ITicketParam){
       const Ticket = await prisma.ticket.create({
         data: {
           name         : param.name,
+          description  : param.description,
           event_id     : param.event_id,
           type         : param.type,
           price        : param.price,
@@ -107,4 +108,25 @@ async function DeleteTicketService(id : number){
   }
 }
 
-export { CreateTicketService, GetTicketService, GetAllTicketService, UpdateTicketService, DeleteTicketService }
+async function GetTicketByEventIdService(eventId : number){
+  
+  try {
+    const Ticket = await prisma.ticket.findMany({
+      where : { event_id : eventId }
+      },
+    );
+
+    return Ticket;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export { 
+  CreateTicketService, 
+  GetTicketService, 
+  GetAllTicketService, 
+  UpdateTicketService, 
+  DeleteTicketService,
+  GetTicketByEventIdService
+}

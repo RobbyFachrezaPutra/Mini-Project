@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateEventService, GetEventService, GetAllEventService, UpdateEventService, DeleteEventService } from "../services/event.service";
+import { 
+  CreateEventService, 
+  GetEventService, 
+  GetAllEventService, 
+  UpdateEventService, 
+  DeleteEventService,
+  SearchEventService
+} from "../services/event.service";
 
 async function CreateEventController(
   req: Request,
@@ -7,7 +14,8 @@ async function CreateEventController(
   next: NextFunction
 ) {
   try {
-    const data = await CreateEventService(req.body);
+    const file = req.file;
+    const data = await CreateEventService(req.body, file);
 
     res.status(200).send({
       message: "Event successfully saved ",
@@ -25,6 +33,24 @@ async function GetAllEventController(
 ) {
   try {
     const data = await GetAllEventService();
+
+    res.status(200).send({
+      message: "Get All Event",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function SearchEventController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const keyword = req.query.keyword as string || "";
+    const data = await SearchEventService(keyword);
 
     res.status(200).send({
       message: "Get All Event",
@@ -87,4 +113,11 @@ async function DeleteEventController(
 }
 
 
-export { CreateEventController, GetEventController, GetAllEventController, UpdateEventController, DeleteEventController };
+export { 
+  CreateEventController, 
+  GetEventController, 
+  GetAllEventController, 
+  UpdateEventController, 
+  DeleteEventController,
+  SearchEventController 
+};

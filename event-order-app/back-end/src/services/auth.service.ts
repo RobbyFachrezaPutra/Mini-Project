@@ -1,9 +1,17 @@
 import { ILoginParam, IRegisterParam } from "../interface/user.interface";
 import prisma from "../lib/prisma";
 import { hash, genSaltSync, compare } from "bcrypt";
-import { sign } from "jsonwebtoken";
+import { sign ,verify } from "jsonwebtoken";
+import { Request, Response, NextFunction } from "express";
 
-import { SECRET_KEY } from "../config";
+import { SECRET_KEY, REFRESH_SECRET } from "../config";
+
+interface JwtPayload {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+}
 
 async function GetAll() {
   try {
@@ -27,6 +35,7 @@ async function findUserByEmail(email: string) {
   try {
     const user = await prisma.user.findFirst({
       select: {
+        id: true,
         email: true,
         first_name: true,
         last_name: true,
@@ -90,6 +99,21 @@ async function RegisterService(param: IRegisterParam) {
             },
           });
 
+          await tx.coupon.create({
+            data: {
+              created_by_id : user.id,
+              is_active : true,
+              max_usage : 1,
+              code : "REGCOUPON",
+              discount_amount: 10,
+              expired_at: new Date(
+                new Date().setMonth(new Date().getMonth() + 3)
+              ), // expired 3 bulan
+              created_at: new Date(),
+              updated_at : new Date(),
+            },
+          });
+
           await tx.point.create({
             data: {
               user_id: referrer.id,
@@ -141,17 +165,45 @@ async function LoginService(param: ILoginParam) {
     };
 
     const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
+    const refreshToken = sign(payload, String(REFRESH_SECRET), { expiresIn: "7d" });
+
     const data = {
+      id : user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
       profile_picture: user.profile_picture,
     };
-    return { user: data, token };
+    return { user: data, token, refreshToken };
   } catch (err) {
     throw err;
   }
 }
 
-export { RegisterService, LoginService, GetAll };
+async function RefreshToken(req : Request, res : Response ){
+  const token = req.cookies.refresh_token;
+  const cookie = req.cookies;
+  if (!token) return res.status(401).json({ message: "No token provided", cookie });
+
+  try {
+    const payload = verify(token, String(REFRESH_SECRET)) as JwtPayload;
+
+    const newAccessToken = sign(
+      {
+        email: payload.email,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        role: payload.role,
+      },
+      String(SECRET_KEY),
+      { expiresIn: "1h" }
+    );
+
+    return { newAccessToken };
+  } catch (err) {
+    return token;
+  }
+}
+
+export { RegisterService, LoginService, GetAll, RefreshToken };

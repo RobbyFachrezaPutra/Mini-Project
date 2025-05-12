@@ -7,4 +7,5 @@ export const {
   CLOUDINARY_NAME,
   CLOUDINARY_KEY,
   CLOUDINARY_SECRET,
+  REFRESH_SECRET
 } = process.env;

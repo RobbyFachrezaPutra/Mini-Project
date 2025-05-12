@@ -1,3 +1,5 @@
+import { ITicketParam } from "./ticket.interface";
+import { IVoucherParam } from "./voucher.interface";
 export interface IEventParam {
   organizer_id : number;
   name         : string;
@@ -11,4 +13,6 @@ export interface IEventParam {
   status       : string;
   created_at   : Date;
   updated_at   : Date;
+  tickets      : ITicketParam[];
+  vouchers     : IVoucherParam[];
 }
