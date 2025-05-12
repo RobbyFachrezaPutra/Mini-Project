@@ -16,11 +16,17 @@ const jsonwebtoken_1 = require("jsonwebtoken");
 const config_1 = require("../config");
 function VerifyToken(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a;
         try {
-            const token = (_a = req.header("Authorization")) === null || _a === void 0 ? void 0 : _a.replace("Bearer ", "");
-            if (!token)
-                throw new Error("Unauthorized");
+            // const token = req.header("Authorization")?.replace("Bearer ", "");
+            const token = req.cookies.acces_token;
+            if (!token) {
+                res.status(401).json({
+                    message: "Access Unauthorized",
+                    details: "You must login to access this resource",
+                });
+                return;
+            }
+            ;
             const verifyUser = (0, jsonwebtoken_1.verify)(token, String(config_1.SECRET_KEY));
             if (!verifyUser)
                 throw new Error("Token tidak valid");

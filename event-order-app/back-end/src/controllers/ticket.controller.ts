@@ -1,5 +1,12 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateTicketService, GetTicketService, GetAllTicketService, UpdateTicketService, DeleteTicketService } from "../services/ticket.service";
+import { 
+  CreateTicketService, 
+  GetTicketService, 
+  GetAllTicketService, 
+  UpdateTicketService, 
+  DeleteTicketService,
+  GetTicketByEventIdService
+} from "../services/ticket.service";
 
 async function CreateTicketController(
   req: Request,
@@ -86,5 +93,28 @@ async function DeleteTicketController(
   }
 }
 
+async function GetTicketByEventIdController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data = await GetTicketByEventIdService(Number(req.params.event_id));
 
-export { CreateTicketController, GetTicketController, GetAllTicketController, UpdateTicketController, DeleteTicketController };
+    res.status(200).send({
+      message: `Get Ticket with event id ${req.params.event_id}`,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export { 
+  CreateTicketController, 
+  GetTicketController, 
+  GetAllTicketController, 
+  UpdateTicketController, 
+  DeleteTicketController,
+  GetTicketByEventIdController
+ };

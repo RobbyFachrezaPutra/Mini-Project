@@ -49,7 +49,7 @@ model Event {
   id              Int            @id @default(autoincrement())
   organizer_id    Int
   name            String         @db.VarChar(50)
-  description     String
+  description     Json?          
   category_id     Int
   location        String         @db.VarChar(20)
   start_date      DateTime
@@ -72,6 +72,7 @@ model Ticket {
   id            Int           @id @default(autoincrement())
   event_id      Int
   name          String        @db.VarChar(50)
+  description   String
   type          String        @db.VarChar(50)
   price         Decimal
   quota         Int
@@ -83,21 +84,18 @@ model Ticket {
   created_by_id Int
   created_by    User          @relation(fields: [created_by_id], references: [id])
   event         Event         @relation("EventTickets", fields: [event_id], references: [id])
-  transactions  Transaction[] @relation("TicketTransactions")
+  transactions  TransactionDetail[] @relation("DetailTiket")
 
   @@map("tickets")
 }
 
 model Transaction {
-  id            Int      @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
+  code          String  @db.VarChar(20)
   user_id       Int
   event_id      Int
-  ticket_id     Int
   voucher_id    Int
   coupon_id     Int
-  qty           Int
-  price         Decimal
-  total_price   Decimal
   voucher_amount Decimal
   point_amount  Decimal
   coupon_amount Decimal
@@ -108,13 +106,26 @@ model Transaction {
   updated_at    DateTime
   user          User     @relation("UserTransactions", fields: [user_id], references: [id])
   event         Event    @relation("EventTransactions", fields: [event_id], references: [id])
-  ticket        Ticket   @relation("TicketTransactions", fields: [ticket_id], references: [id])
   voucher       Voucher  @relation("VoucherTransactions", fields: [voucher_id], references: [id])
   coupon        Coupon  @relation("CouponTransactions", fields: [coupon_id], references: [id])
   reviews       Review[] @relation("TransactionReviews")
   coupon_usage  Coupon_Usage[] @relation("TransactionCouponUsages")
-
+  detail        TransactionDetail[] @relation("TrsansactionDetail")
+  point_usage   Point_Usage[] @relation("TransactionPointUsages")
   @@map("transactions")
+}
+
+model TransactionDetail {
+  id             Int      @id @default(autoincrement())
+  transaction_id Int
+  ticket_id      Int
+  qty            Int
+  price          Decimal // per item
+  subtotal       Decimal // price × qty
+
+  transaction    Transaction @relation("TrsansactionDetail", fields: [transaction_id], references: [id])
+  ticket         Ticket      @relation("DetailTiket",fields: [ticket_id], references: [id])
+  @@map("transactions_details")
 }
 
 model Referral_log {
@@ -180,13 +191,27 @@ model Coupon_Usage {
 
 model Point {
   id         Int      @id @default(autoincrement())
-  user_id    Int      @unique
+  user_id    Int      
   point      Int
   expired_at DateTime
   created_at DateTime
   user       User?    @relation("UserPoints", fields: [user_id], references: [id])
+  point_usage    Point_Usage[] @relation("PointPointUsage")
 
   @@map("points")
+}
+
+model Point_Usage {
+  id            Int      @id @default(autoincrement())
+  transaction_id Int
+  point_id       Int
+  used          Int
+  usedAt        DateTime @default(now())
+
+  transaction   Transaction @relation("TransactionPointUsages", fields: [transaction_id], references: [id])
+  point         Point        @relation("PointPointUsage", fields: [point_id], references: [id])
+
+  @@map("points_usage")
 }
 
 model Review {

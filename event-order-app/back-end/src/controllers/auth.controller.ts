@@ -3,6 +3,7 @@ import {
   LoginService,
   RegisterService,
   GetAll,
+  RefreshToken
 } from "../services/auth.service";
 
 import { IUserReqParam } from "../custom";
@@ -40,7 +41,15 @@ async function LoginController(
       return;
     }
 
-    res.status(200).cookie("acces_token", data.token).send({
+    res.status(200).
+    cookie("access_token", data.token).
+    cookie("refresh_token", data.refreshToken, {
+      httpOnly: true,
+      secure: true, // cookie only over HTTPS in prod
+      sameSite: "lax", // or "none" for cross-site, but "none" requires HTTPS
+      path: "/",
+    }).
+    send({
       message: "Login Berhasil",
       data: data.user,
     });
@@ -64,4 +73,18 @@ async function UserController(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-export { RegisterController, LoginController, UserController };
+async function RefreshTokenController(req: Request, res: Response, next: NextFunction) {
+  try{
+     const accessToken = await RefreshToken(req, res);
+
+    res.status(200).cookie("access_token", accessToken).send({
+      message: "Refresh token berhasil"
+    });
+  } catch (err)
+  {
+    next();
+  }
+}
+
+
+export { RegisterController, LoginController, UserController, RefreshTokenController };

@@ -1,5 +1,6 @@
 export interface ITicketParam {
   name        : string;
+  description : string
   event_id    : number;
   type        : string;
   price       : number;

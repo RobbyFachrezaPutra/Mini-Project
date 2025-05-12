@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { CreateCouponService, GetAllCouponService, GetCouponService, UpdateCouponService, DeleteCouponService } from "../services/coupon.service";
+import { GetCouponByUserIdService, CreateCouponService, GetAllCouponService, GetCouponService, UpdateCouponService, DeleteCouponService } from "../services/coupon.service";
 
 async function CreateCouponController(
   req: Request,
@@ -52,6 +52,23 @@ async function GetCouponController(
   }
 }
 
+async function GetCouponByUserIdController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data = await GetCouponByUserIdService(Number(req.params.user_id));
+
+    res.status(200).send({
+      message: `Get Coupon with id ${req.params.id}`,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function UpdateCouponController(
   req: Request,
   res: Response,
@@ -86,4 +103,4 @@ async function DeleteCouponController(
   }
 }
 
-export { CreateCouponController, GetAllCouponController, GetCouponController, UpdateCouponController, DeleteCouponController };
+export { GetCouponByUserIdController, CreateCouponController, GetAllCouponController, GetCouponController, UpdateCouponController, DeleteCouponController };

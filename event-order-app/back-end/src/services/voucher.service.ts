@@ -103,4 +103,33 @@ async function DeleteVoucherService(id : number){
   }
 }
 
-export { CreateVoucherService, GetVoucherService, GetAllVoucherService, UpdateVoucherService, DeleteVoucherService }
+async function GetVoucherByEventIdService(eventId : number){
+  
+  try {
+    const Voucher = await prisma.voucher.findMany({
+      where : { 
+        event_id : eventId,
+        sales_start: {
+          lte: new Date(), // start_date <= now
+        },
+        sales_end: {
+          gte: new Date(), // end_date >= now
+        },
+       }
+      },
+    );
+
+    return Voucher;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export { 
+  CreateVoucherService,
+  GetVoucherService, 
+  GetAllVoucherService, 
+  UpdateVoucherService, 
+  DeleteVoucherService,
+  GetVoucherByEventIdService
+}

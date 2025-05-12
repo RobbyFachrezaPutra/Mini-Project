@@ -13,10 +13,12 @@ const event_router_1 = __importDefault(require("./routers/event.router"));
 const ticket_router_1 = __importDefault(require("./routers/ticket.router"));
 const voucher_router_1 = __importDefault(require("./routers/voucher.router"));
 const transaction_router_1 = __importDefault(require("./routers/transaction.router"));
+const cookieParser = require("cookie-parser");
 const profile_router_1 = __importDefault(require("./routers/profile.router"));
 const port = config_1.PORT || 8001;
 const app = (0, express_1.default)();
 const base_url = "/api/eventorder";
+app.use(cookieParser());
 app.use((0, cors_1.default)({
     origin: config_1.FE_URL,
     credentials: true,
