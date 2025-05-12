@@ -17,7 +17,7 @@
   ],
   "crons": [
     {
-      "path": "src/utils/expire-transactions",
+      "path": "/src/utils/expire-transactions",
       "schedule": "*/10 * * * *"
     }
   ]    
