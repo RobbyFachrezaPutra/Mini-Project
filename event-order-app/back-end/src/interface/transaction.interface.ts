@@ -1,3 +1,5 @@
+import { IEventParam } from "./event.interface";
+
 interface ITransactionDetailParam {
     ticket_id: number;
     qty: number;

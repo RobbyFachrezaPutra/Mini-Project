@@ -166,12 +166,35 @@ async function DeleteEventService(id: number) {
 async function SearchEventService(eventName : string){  
   try {
     const event = await prisma.event.findMany({
-      where : {      
-        name: {
-          contains: eventName,
-          mode: 'insensitive',
-        },
-      }
+      where: {
+        OR: [
+          {
+            name: {
+              contains: eventName,
+              mode: "insensitive",
+            },
+          },
+          {
+            location: {
+              contains: eventName,
+              mode: "insensitive",
+            },
+          },
+          {
+            category:{
+              name:{
+                contains:eventName,
+                mode:"insensitive"
+              }
+            }
+          }
+        ],
+      },
+
+      include: {
+        category: true,
+        tickets: true,
+      },
     });
 
     return event;
@@ -229,10 +252,10 @@ const getAttendeesByEvent = async (eventId: number) => {
   });
 
   const attendees = transactions.map((trx) => ({
-    id: trx.user.id,
-    first_name: trx.user.first_name,
-    last_name: trx.user.last_name,
-    email: trx.user.email,
+    id: trx.user!.id,
+    first_name: trx.user?.first_name,
+    last_name: trx.user?.last_name,
+    email: trx.user!.email,
   }));
 
   return {

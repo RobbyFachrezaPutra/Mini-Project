@@ -16,7 +16,7 @@ import { uploadSingle } from "../middlewares/upload.middleware";
 
 const router = Router();
 
-router.put("payment-proof/:id", VerifyToken, uploadSingle('banner_url'), UploadPaymentProofController);
+router.put("/payment-proof/:id", VerifyToken, uploadSingle('payment_proof'), UploadPaymentProofController);
 router.post("/", VerifyToken, ReqValidator(transactionSchema),  CreateTransactionController);
 router.get("/by-user/:user_id", VerifyToken, GetTransactionByUserIdController);
 router.get("/", VerifyToken, GetAllTransactionController);

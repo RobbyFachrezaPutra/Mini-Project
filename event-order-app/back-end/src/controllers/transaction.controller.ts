@@ -100,7 +100,7 @@ async function UploadPaymentProofController(
 ) {
   try {
     const file = req.file;
-    const data = await UploadPaymentProofService(req.body, file);
+    const data = await UploadPaymentProofService(req.body, Number(req.params.id), file);
 
     res.status(200).send({
       message: "Event successfully saved ",

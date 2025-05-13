@@ -1,6 +1,7 @@
 import { ITicketParam } from "./ticket.interface";
 import { IVoucherParam } from "./voucher.interface";
 export interface IEventParam {
+  id           : number;
   organizer_id : number;
   name         : string;
   description  : string;

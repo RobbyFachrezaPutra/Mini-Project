@@ -2,26 +2,48 @@ import { date } from "zod";
 import ITransactionParam from "../interface/transaction.interface";
 import prisma from "../lib/prisma";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
+import { Prisma } from "@prisma/client";
+import { connect } from "http2";
 
 async function CreateTransactionService(param: ITransactionParam) {
   try {
+
     const result = await prisma.$transaction(async (tx) => {
-      const transaction = await tx.transaction.create({
-        data: {
-          code: param.code,
-          event_id: param.event_id,
-          voucher_id: param.voucher_id,
-          coupon_id: param.coupon_id,
-          voucher_amount: param.voucher_amount,
-          point_amount: param.point_amount,
-          coupon_amount: param.coupon_amount,
-          final_price: param.final_price,
-          payment_proof: param.payment_proof,
-          status: param.status,
-          created_at: new Date(),
-          updated_at: new Date(),
-          user_id: param.user_id,
+
+      const data: any = {
+        code: param.code,
+        voucher_amount: param.voucher_amount,
+        point_amount: param.point_amount,
+        coupon_amount: param.coupon_amount,
+        final_price: param.final_price,
+        payment_proof: param.payment_proof,
+        status: param.status,
+        created_at: new Date(),
+        updated_at: new Date(),
+        user: {
+          connect: { id: param.user_id }
         },
+        event: {
+          connect: { id: param.event_id }
+        },
+      };
+      
+      // Conditionally add voucher relation
+      if (param.voucher_id) {
+        data.voucher = {
+          connect: { id: param.voucher_id }
+        };
+      }
+      
+      // Conditionally add coupon relation
+      if (param.coupon_id) {
+        data.coupon = {
+          connect: { id: param.coupon_id }
+        };
+      }
+      
+      const transaction = await prisma.transaction.create({
+        data
       });
 
       // Simpan detail tiket
@@ -251,7 +273,8 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
 async function UploadPaymentProofService(
   param: ITransactionParam,
-  file?: Express.Multer.File
+  id: number,
+  file?: Express.Multer.File,
 ) {
   if (file) {
     const uploadResult = await uploadImageToCloudinary(file);
@@ -259,10 +282,10 @@ async function UploadPaymentProofService(
   }
   const result = await prisma.$transaction(async (prisma) => {
     const transaction = await prisma.transaction.update({
-      where: { id: param.id },
+      where: { id },
       data: {
         payment_proof: param.payment_proof,
-        status: "Waiting for confirmation",
+        status: "pending",
       },
     });
   });
