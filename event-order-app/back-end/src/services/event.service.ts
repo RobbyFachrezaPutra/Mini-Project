@@ -1,3 +1,4 @@
+import { date } from "zod";
 import { IEventParam } from "../interface/event.interface";
 import { ITicketParam } from "../interface/ticket.interface";
 import { IVoucherParam } from "../interface/voucher.interface";
@@ -9,12 +10,13 @@ async function CreateEventService(
   file?: Express.Multer.File
 ) {
   try {
-    const result = await prisma.$transaction(async (prisma) => {
-      if (file) {
-        const uploadResult = await uploadImageToCloudinary(file);
-        param.banner_url = uploadResult?.secure_url;
-      }
+    if (file) {
+      const uploadResult = await uploadImageToCloudinary(file);
+      param.banner_url = uploadResult?.secure_url;
+    }
 
+    const result = await prisma.$transaction(async (prisma) => {
+  
       // Pastikan tickets berupa array setelah parsing
       let parsedTickets: ITicketParam[] = [];
       if (typeof param.tickets === "string") {
@@ -82,11 +84,18 @@ async function CreateEventService(
 async function GetAllEventService() {
   try {
     const event = await prisma.event.findMany({
-      include: {
-        category: true,
-        tickets: true,
+      where :{
+        start_date : {
+          gt : new Date()
+        },
+        status : "Publish"
       },
-    });
+      include : {
+        category : true,
+        tickets : true
+      }
+      },
+    );
 
     return event;
   } catch (err) {
@@ -154,15 +163,15 @@ async function DeleteEventService(id: number) {
   }
 }
 
-async function SearchEventService(eventName: string) {
+async function SearchEventService(eventName : string){  
   try {
     const event = await prisma.event.findMany({
-      where: {
+      where : {      
         name: {
           contains: eventName,
-          mode: "insensitive",
+          mode: 'insensitive',
         },
-      },
+      }
     });
 
     return event;
