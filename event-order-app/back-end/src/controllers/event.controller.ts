@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from "express";
-import { 
-  CreateEventService, 
-  GetEventService, 
-  GetAllEventService, 
-  UpdateEventService, 
+import {
+  CreateEventService,
+  GetEventService,
+  GetAllEventService,
+  UpdateEventService,
   DeleteEventService,
-  SearchEventService
+  SearchEventService,
+  GetEventsByOrganizerService,
+  getAttendeesByEvent,
 } from "../services/event.service";
 
 async function CreateEventController(
@@ -49,7 +51,7 @@ async function SearchEventController(
   next: NextFunction
 ) {
   try {
-    const keyword = req.query.keyword as string || "";
+    const keyword = (req.query.keyword as string) || "";
     const data = await SearchEventService(keyword);
 
     res.status(200).send({
@@ -112,12 +114,61 @@ async function DeleteEventController(
   }
 }
 
+async function GetEventsByOrganizerController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const organizerId = Number(req.params.organizerId);
 
-export { 
-  CreateEventController, 
-  GetEventController, 
-  GetAllEventController, 
-  UpdateEventController, 
+    if (isNaN(organizerId)) {
+      res.status(400).json({ message: "Invalid organizerId" });
+      return;
+    }
+
+    const data = await GetEventsByOrganizerService(organizerId);
+
+    res.status(200).json({
+      message: `Events for organizer ${organizerId} retrieved successfully`,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function GetAttendeesByEventController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const eventId = Number(req.params.eventId);
+
+    if (isNaN(eventId)) {
+      res.status(400).json({ message: "Invalid eventId" });
+      return;
+    }
+
+    const data = await getAttendeesByEvent(eventId);
+
+    res.status(200).json({
+      message: `Attendees for event ${eventId} retrieved successfully`,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export {
+  CreateEventController,
+  GetEventController,
+  GetAllEventController,
+  UpdateEventController,
   DeleteEventController,
-  SearchEventController 
+  SearchEventController,
+  GetEventsByOrganizerController,
+  GetAttendeesByEventController,
 };
