@@ -9,6 +9,7 @@ async function CreateTransactionService(param: ITransactionParam) {
       const transaction = await tx.transaction.create({
         data: {
           event_id: param.event_id,
+          code : param.code,
           voucher_id: param.voucher_id,
           coupon_id: param.coupon_id,
           voucher_amount: param.voucher_amount,

@@ -1,3 +1,4 @@
+import { date } from "zod";
 import { IEventParam } from "../interface/event.interface";
 import { ITicketParam } from "../interface/ticket.interface";
 import { IVoucherParam } from "../interface/voucher.interface";
@@ -8,12 +9,12 @@ async function CreateEventService(param : IEventParam,
   file?: Express.Multer.File){
   
   try {
+    if (file) {
+      const uploadResult = await uploadImageToCloudinary(file);
+      param.banner_url = uploadResult?.secure_url;
+    }
 
     const result = await prisma.$transaction(async (prisma) => {
-      if (file) {
-        const uploadResult = await uploadImageToCloudinary(file);
-        param.banner_url = uploadResult?.secure_url;
-      }
   
       // Pastikan tickets berupa array setelah parsing
       let parsedTickets: ITicketParam[] = [];
@@ -85,6 +86,12 @@ async function GetAllEventService(){
   
   try {
     const event = await prisma.event.findMany({
+      where :{
+        start_date : {
+          gt : new Date()
+        },
+        status : "Publish"
+      },
       include : {
         category : true,
         tickets : true
@@ -166,16 +173,30 @@ async function DeleteEventService(id : number){
   }
 }
 
-async function SearchEventService(eventName : string){
+async function SearchEventService(eventName : string, category_id : string, location : string){
   
   try {
-    const event = await prisma.event.findMany({
-      where : {      
-        name: {
-          contains: eventName,
-          mode: 'insensitive',
-        },
-      }
+    const filters: any = {};
+
+    if (eventName && eventName.trim() !== '') {
+      filters.name = {
+        contains: eventName,
+        mode: 'insensitive',
+      };
+    }
+    
+    if (category_id && category_id.trim() !== '') {
+      filters.category_id = category_id;
+    }
+    
+    if (location && location.trim() !== '') {
+      filters.location = {
+        contains: location,
+        mode: 'insensitive',
+      };
+    }
+    const events = await prisma.event.findMany({
+      where: filters,
     });
 
     return event;
