@@ -163,8 +163,7 @@ async function DeleteEventService(id: number) {
   }
 }
 
-async function SearchEventService(eventName : string){
-  
+async function SearchEventService(eventName : string){  
   try {
     const event = await prisma.event.findMany({
       where : {      

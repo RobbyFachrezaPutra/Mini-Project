@@ -10,7 +10,6 @@ async function CreateTransactionService(param: ITransactionParam) {
         data: {
           code: param.code,
           event_id: param.event_id,
-          code : param.code,
           voucher_id: param.voucher_id,
           coupon_id: param.coupon_id,
           voucher_amount: param.voucher_amount,
