@@ -4,6 +4,11 @@ import { ITicketParam } from "../interface/ticket.interface";
 import { IVoucherParam } from "../interface/voucher.interface";
 import prisma from "../lib/prisma";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
+import {
+  IAttendee,
+  IEventWithAttendees,
+} from "../interface/attendee.interface";
+import { error } from "console";
 
 async function CreateEventService(
   param: IEventParam,
@@ -16,7 +21,6 @@ async function CreateEventService(
     }
 
     const result = await prisma.$transaction(async (prisma) => {
-  
       // Pastikan tickets berupa array setelah parsing
       let parsedTickets: ITicketParam[] = [];
       if (typeof param.tickets === "string") {
@@ -84,18 +88,17 @@ async function CreateEventService(
 async function GetAllEventService() {
   try {
     const event = await prisma.event.findMany({
-      where :{
-        start_date : {
-          gt : new Date()
+      where: {
+        start_date: {
+          gt: new Date(),
         },
-        status : "Publish"
+        status: "Publish",
       },
-      include : {
-        category : true,
-        tickets : true
-      }
+      include: {
+        category: true,
+        tickets: true,
       },
-    );
+    });
 
     return event;
   } catch (err) {
@@ -163,15 +166,38 @@ async function DeleteEventService(id: number) {
   }
 }
 
-async function SearchEventService(eventName : string){  
+async function SearchEventService(eventName: string) {
   try {
     const event = await prisma.event.findMany({
-      where : {      
-        name: {
-          contains: eventName,
-          mode: 'insensitive',
-        },
-      }
+      where: {
+        OR: [
+          {
+            name: {
+              contains: eventName,
+              mode: "insensitive",
+            },
+          },
+          {
+            location: {
+              contains: eventName,
+              mode: "insensitive",
+            },
+          },
+          {
+            category: {
+              name: {
+                contains: eventName,
+                mode: "insensitive",
+              },
+            },
+          },
+        ],
+      },
+
+      include: {
+        category: true,
+        tickets: true,
+      },
     });
 
     return event;
@@ -203,43 +229,62 @@ async function GetEventsByOrganizerService(organizerId: number) {
   }
 }
 
-const getAttendeesByEvent = async (eventId: number) => {
+async function getEventWithAttendees(
+  eventId: number
+): Promise<IEventWithAttendees> {
+  // Jangan disconnect prisma di finally jika menggunakan connection pooling!
+  // Biarkan prisma manage koneksinya sendiri
   const event = await prisma.event.findUnique({
     where: { id: eventId },
-    select: {
-      name: true,
-    },
-  });
-
-  const transactions = await prisma.transaction.findMany({
-    where: {
-      event_id: eventId,
-      status: "done",
-    },
     include: {
-      user: {
-        select: {
-          id: true,
-          first_name: true,
-          last_name: true,
-          email: true,
+      transactions: {
+        where: { status: "approved" }, // Filter hanya yang approved (optional)
+        include: {
+          user: {
+            select: {
+              id: true,
+              first_name: true,
+              last_name: true,
+              email: true,
+            },
+          },
         },
       },
     },
   });
 
-  const attendees = transactions.map((trx) => ({
-    id: trx.user.id,
-    first_name: trx.user.first_name,
-    last_name: trx.user.last_name,
-    email: trx.user.email,
-  }));
+  if (!event) {
+    throw new Error();
+  }
+
+  const attendees = event.transactions
+    .filter(
+      (trx): trx is typeof trx & { user: NonNullable<typeof trx.user> } => {
+        if (!trx.user) {
+          console.warn(`Transaction ${trx.id} has no user associated`);
+          return false;
+        }
+        return true;
+      }
+    )
+    .map((trx) => ({
+      id: trx.user.id,
+      first_name: trx.user.first_name,
+      last_name: trx.user.last_name,
+      email: trx.user.email,
+      status: trx.status,
+    }));
 
   return {
-    name: event?.name ?? "Unknown Event",
+    id: event.id,
+    name: event.name,
     attendees,
+    total_attendees: attendees.length,
+    // Tambahan:
+    event_date: event.start_date,
+    location: event.location,
   };
-};
+}
 
 export {
   CreateEventService,
@@ -249,5 +294,5 @@ export {
   DeleteEventService,
   SearchEventService,
   GetEventsByOrganizerService,
-  getAttendeesByEvent,
+  getEventWithAttendees,
 };

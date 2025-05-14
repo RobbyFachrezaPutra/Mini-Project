@@ -55,7 +55,7 @@ model Event {
   start_date      DateTime
   end_date        DateTime
   available_seats Int
-  banner_url      String
+  banner_url      String         @db.Text
   status          String         @db.VarChar(20)
   created_at      DateTime
   updated_at      DateTime
@@ -91,27 +91,27 @@ model Ticket {
 
 model Transaction {
   id             Int                 @id @default(autoincrement())
-  code           String              @db.VarChar(20)
+  code           String              @db.VarChar(100)
   user_id        Int
   event_id       Int
-  voucher_id     Int
-  coupon_id      Int
+  voucher_id     Int?
+  coupon_id      Int?
   voucher_amount Decimal
   point_amount   Decimal
   coupon_amount  Decimal
   final_price    Decimal
-  status         String              @db.VarChar(20)
-  payment_proof  String
+  status         String              @db.VarChar(100)
+  payment_proof  String              @db.Text
   created_at     DateTime
   updated_at     DateTime
-  user           User                @relation("UserTransactions", fields: [user_id], references: [id])
-  event          Event               @relation("EventTransactions", fields: [event_id], references: [id])
-  voucher        Voucher             @relation("VoucherTransactions", fields: [voucher_id], references: [id])
-  coupon         Coupon              @relation("CouponTransactions", fields: [coupon_id], references: [id])
+  user           User?                @relation("UserTransactions", fields: [user_id], references: [id])
+  event          Event?               @relation("EventTransactions", fields: [event_id], references: [id])
+  voucher        Voucher?             @relation("VoucherTransactions", fields: [voucher_id], references: [id])
+  coupon         Coupon?              @relation("CouponTransactions", fields: [coupon_id], references: [id])
   reviews        Review[]            @relation("TransactionReviews")
   coupon_usage   Coupon_Usage[]      @relation("TransactionCouponUsages")
   detail         TransactionDetail[] @relation("TrsansactionDetail")
-  point_usage    Point_Usage[]       @relation("TransactionPointUsages")
+  point_usage    Point_Usage[]     @relation("TransactionPointUsages")
 
   @@map("transactions")
 }

@@ -4,7 +4,6 @@ import prisma from "../lib/prisma";
 async function CreateCouponService(param: ICoupon) {
   const expiredAt = new Date(new Date().setMonth(new Date().getMonth() + 3));
   try {
-
     const result = await prisma.$transaction(async (prisma) => {
       const coupon = await prisma.coupon.create({
         data: {
@@ -15,7 +14,7 @@ async function CreateCouponService(param: ICoupon) {
           created_by_id: param.created_by_id,
           created_at: new Date(),
           updated_at: new Date(),
-          expired_at: expiredAt
+          expired_at: expiredAt,
         },
       });
       return coupon;
@@ -29,7 +28,17 @@ async function CreateCouponService(param: ICoupon) {
 
 async function GetAllCouponService() {
   try {
-    const coupon = await prisma.coupon.findMany({
+    const coupon = await prisma.coupon.findMany({});
+    return coupon;
+  } catch (err) {
+    throw err;
+  }
+}
+
+async function GetCouponService(id: number) {
+  try {
+    const coupon = await prisma.coupon.findUnique({
+      where: { id },
     });
     return coupon;
   } catch (err) {
@@ -37,24 +46,11 @@ async function GetAllCouponService() {
   }
 }
 
-async function GetCouponService(id : number) {
+async function UpdateCouponService(id: number, param: ICoupon) {
   try {
-    const coupon = await prisma.coupon.findUnique({
-      where : { id }
-    },
-  );
-    return coupon;
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function UpdateCouponService(id : number, param : ICoupon) {
-  try {
-
     const result = await prisma.$transaction(async (prisma) => {
       const coupon = await prisma.coupon.update({
-        where : { id },
+        where: { id },
         data: {
           code: param.code,
           discount_amount: param.discount_amount,
@@ -62,7 +58,7 @@ async function UpdateCouponService(id : number, param : ICoupon) {
           is_active: param.is_active,
           created_by_id: param.created_by_id,
           created_at: new Date(),
-          updated_at: new Date()
+          updated_at: new Date(),
         },
       });
       return coupon;
@@ -74,36 +70,40 @@ async function UpdateCouponService(id : number, param : ICoupon) {
   }
 }
 
-async function DeleteCouponService(id : number) {
+async function DeleteCouponService(id: number) {
   try {
-    
     const result = await prisma.$transaction(async (prisma) => {
       const coupon = await prisma.coupon.delete({
-        where : { id }
+        where: { id },
       });
       return coupon;
     });
-
   } catch (err) {
     throw err;
   }
 }
 
-async function GetCouponByUserIdService(userid : number) {
+async function GetCouponByUserIdService(userid: number) {
   try {
     const coupon = await prisma.coupon.findMany({
-      where : { 
-        created_by_id : userid,
+      where: {
+        created_by_id: userid,
         expired_at: {
           gt: new Date(),
         },
-       }
-    },
-  );
+      },
+    });
     return coupon;
   } catch (err) {
     throw err;
   }
 }
 
-export {GetCouponByUserIdService, CreateCouponService, GetAllCouponService, GetCouponService, UpdateCouponService, DeleteCouponService };
+export {
+  GetCouponByUserIdService,
+  CreateCouponService,
+  GetAllCouponService,
+  GetCouponService,
+  UpdateCouponService,
+  DeleteCouponService,
+};
