@@ -304,6 +304,21 @@ async function GetTransactionByUserIdService(user_id: number) {
   }
 }
 
+async function UpdateTransactionTransIdService(id: number, param: ITransactionParam) {
+  try {
+    const transaction = await prisma.transaction.update({
+      where: { id },
+      data: {
+        status: "approve"
+      },
+    });
+  
+    return transaction;
+  } catch (err) {
+    throw err;
+  }
+}
+
 async function GetTransactionByOrganizerIdService(organizerId: number) {
   try {
     const transactions = await prisma.transaction.findMany({
@@ -375,4 +390,5 @@ export {
   UploadPaymentProofService,
   GetTransactionByUserIdService,
   GetTransactionByOrganizerIdService,
+  UpdateTransactionTransIdService
 };
