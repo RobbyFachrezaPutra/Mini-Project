@@ -14,6 +14,7 @@ import cookieParser = require("cookie-parser");
 import ProfileRouter from "./routers/profile.router";
 import pointRouter from "./routers/point.router";
 import ResetPasswordRouter from "./routers/reset-password.router";
+import StatisticRouter from "./routers/statistic.router";
 
 const port = PORT || 8001;
 const app: Application = express();
@@ -49,6 +50,7 @@ app.use(`${base_url}/transactions`, transactionRouter);
 app.use(`${base_url}/profile`, ProfileRouter);
 app.use(`${base_url}/reset-password`, ResetPasswordRouter);
 app.use(`${base_url}/points`, pointRouter);
+app.use(`${base_url}/statistic`, StatisticRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);

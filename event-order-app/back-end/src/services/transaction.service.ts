@@ -7,9 +7,7 @@ import { connect } from "http2";
 
 async function CreateTransactionService(param: ITransactionParam) {
   try {
-
     const result = await prisma.$transaction(async (tx) => {
-
       const data: any = {
         code: param.code,
         voucher_amount: param.voucher_amount,
@@ -21,29 +19,29 @@ async function CreateTransactionService(param: ITransactionParam) {
         created_at: new Date(),
         updated_at: new Date(),
         user: {
-          connect: { id: param.user_id }
+          connect: { id: param.user_id },
         },
         event: {
-          connect: { id: param.event_id }
+          connect: { id: param.event_id },
         },
       };
-      
+
       // Conditionally add voucher relation
       if (param.voucher_id) {
         data.voucher = {
-          connect: { id: param.voucher_id }
+          connect: { id: param.voucher_id },
         };
       }
-      
+
       // Conditionally add coupon relation
       if (param.coupon_id) {
         data.coupon = {
-          connect: { id: param.coupon_id }
+          connect: { id: param.coupon_id },
         };
       }
-      
+
       const transaction = await prisma.transaction.create({
-        data
+        data,
       });
 
       // Simpan detail tiket
@@ -274,7 +272,7 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 async function UploadPaymentProofService(
   param: ITransactionParam,
   id: number,
-  file?: Express.Multer.File,
+  file?: Express.Multer.File
 ) {
   if (file) {
     const uploadResult = await uploadImageToCloudinary(file);
@@ -306,6 +304,69 @@ async function GetTransactionByUserIdService(user_id: number) {
   }
 }
 
+async function GetTransactionByOrganizerIdService(organizerId: number) {
+  try {
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        event: {
+          organizer_id: organizerId, // Filter transaksi berdasarkan event yang dimiliki oleh organizer
+        },
+      },
+      include: {
+        user: {
+          select: {
+            first_name: true,
+            last_name: true,
+            email: true,
+          },
+        },
+        event: {
+          select: {
+            name: true,
+          },
+        },
+        detail: {
+          select: {
+            qty: true,
+            ticket: {
+              select: {
+                type: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Jika transaksi ditemukan, format data transaksi
+    const formattedTransactions = transactions.map((tx) => {
+      // Menangani jika detail lebih dari satu, dan menggabungkan data detailnya
+      const totalQuantity = tx.detail.reduce(
+        (acc, detail) => acc + detail.qty,
+        0
+      );
+      const ticketType = tx.detail[0]?.ticket.type || "-"; // Ambil tipe tiket dari detail pertama
+
+      return {
+        id: tx.id,
+        name: `${tx.user?.first_name} ${tx.user?.last_name}`,
+        email: tx.user?.email,
+        event: tx.event?.name,
+        ticketType,
+        quantity: totalQuantity,
+        paymentProof: tx.payment_proof,
+        status: tx.status,
+        createdAt: new Date(tx.created_at).toISOString(), // Format tanggal
+      };
+    });
+
+    return formattedTransactions;
+  } catch (err) {
+    console.error("Error fetching transactions: ", err);
+    throw new Error("Failed to fetch transactions");
+  }
+}
+
 export {
   CreateTransactionService,
   GetTransactionService,
@@ -313,4 +374,5 @@ export {
   UpdateTransactionService,
   UploadPaymentProofService,
   GetTransactionByUserIdService,
+  GetTransactionByOrganizerIdService,
 };

@@ -7,7 +7,7 @@ import {
   DeleteEventService,
   SearchEventService,
   GetEventsByOrganizerService,
-  getAttendeesByEvent,
+  getEventWithAttendees,
 } from "../services/event.service";
 
 async function CreateEventController(
@@ -146,15 +146,19 @@ async function GetAttendeesByEventController(
   try {
     const eventId = Number(req.params.eventId);
 
-    if (isNaN(eventId)) {
-      res.status(400).json({ message: "Invalid eventId" });
+    if (isNaN(eventId) || eventId <= 0) {
+      res.status(400).json({
+        success: false,
+        error: "Invalid event ID",
+      });
       return;
     }
 
-    const data = await getAttendeesByEvent(eventId);
+    const data = await getEventWithAttendees(eventId);
 
     res.status(200).json({
-      message: `Attendees for event ${eventId} retrieved successfully`,
+      success: true,
+      message: `Attendees for event '${data.name}' retrieved successfully`,
       data,
     });
   } catch (err) {
