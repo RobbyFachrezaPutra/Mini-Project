@@ -56,7 +56,7 @@ async function deleteProfilePictureService(email: string) {
 
   if (
     user?.profile_picture &&
-    user.profile_picture !== "/default-profile.png"
+    user.profile_picture !== "Profile_avatar_placeholder_large.png"
   ) {
     try {
       await deleteFromCloudinary(user.profile_picture);
@@ -67,7 +67,7 @@ async function deleteProfilePictureService(email: string) {
 
   return await prisma.user.update({
     where: { email },
-    data: { profile_picture: "/default-profile.png" },
+    data: { profile_picture: "Profile_avatar_placeholder_large.png" },
   });
 }
 

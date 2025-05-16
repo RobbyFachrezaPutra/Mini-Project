@@ -238,7 +238,7 @@ async function getEventWithAttendees(
     where: { id: eventId },
     include: {
       transactions: {
-        where: { status: "approved" }, // Filter hanya yang approved (optional)
+        where: { status: "approve" }, // Filter hanya yang approved (optional)
         include: {
           user: {
             select: {

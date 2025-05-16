@@ -1,7 +1,7 @@
 import { ILoginParam, IRegisterParam } from "../interface/user.interface";
 import prisma from "../lib/prisma";
 import { hash, genSaltSync, compare } from "bcrypt";
-import { sign ,verify } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 
 import { SECRET_KEY, REFRESH_SECRET } from "../config";
@@ -21,15 +21,16 @@ async function GetAll() {
   }
 }
 
-function generateReferralCode(firstName: string): string {
-  const prefix = firstName.toLowerCase();
-  const randomNumber = Math.floor(1000 + Math.random() * 9000);
-  const referralCode = `${prefix}${randomNumber}`;
-
-  return referralCode.length > 20 ? referralCode.slice(0, 20) : referralCode;
+function generateReferralCode(length: number = 8): string {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return code;
 }
 
-const defaultProfilePicture = "https://www.w3schools.com/howto/img_avatar.png";
+const defaultProfilePicture = "Profile_avatar_placeholder_large.png";
 
 async function findUserByEmail(email: string) {
   try {
@@ -72,7 +73,7 @@ async function RegisterService(param: IRegisterParam) {
 
       const hashedPassword = await hash(param.password, salt);
 
-      const referralCode = generateReferralCode(param.first_name).slice(0, 20);
+      const referralCode = generateReferralCode(8);
 
       const user = await prisma.user.create({
         data: {
@@ -102,16 +103,16 @@ async function RegisterService(param: IRegisterParam) {
 
           await tx.coupon.create({
             data: {
-              created_by_id : user.id,
-              is_active : true,
-              max_usage : 1,
-              code : "REGCOUPON",
+              created_by_id: user.id,
+              is_active: true,
+              max_usage: 1,
+              code: "REGCOUPON",
               discount_amount: 10,
               expired_at: new Date(
                 new Date().setMonth(new Date().getMonth() + 3)
               ), // expired 3 bulan
               created_at: new Date(),
-              updated_at : new Date(),
+              updated_at: new Date(),
             },
           });
 
@@ -158,26 +159,45 @@ async function LoginService(param: ILoginParam) {
       };
     }
 
+    // Ambil total points aktif user (belum expired)
+    const now = new Date();
+    const pointsAgg = await prisma.point.aggregate({
+      _sum: {
+        point: true,
+      },
+      where: {
+        user_id: user.id,
+        expired_at: {
+          gt: now,
+        },
+      },
+    });
+
+    const totalPoints = pointsAgg._sum.point || 0;
+
     const payload = {
       id: user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
-      referral_code: user,
+      referral_code: user.referral_code,
     };
 
-    const token = sign(payload, String(SECRET_KEY), { expiresIn: "1h" });
-    const refreshToken = sign(payload, String(REFRESH_SECRET), { expiresIn: "7d" });
+    const token = sign(payload, String(SECRET_KEY), { expiresIn: "24h" });
+    const refreshToken = sign(payload, String(REFRESH_SECRET), {
+      expiresIn: "7d",
+    });
 
     const data = {
-      id : user.id,
+      id: user.id,
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
       profile_picture: user.profile_picture,
       referral_code: user.referral_code,
+      points: totalPoints,
     };
     return { user: data, token, refreshToken };
   } catch (err) {
@@ -185,10 +205,11 @@ async function LoginService(param: ILoginParam) {
   }
 }
 
-async function RefreshToken(req : Request, res : Response ){
+async function RefreshToken(req: Request, res: Response) {
   const token = req.cookies.refresh_token;
   const cookie = req.cookies;
-  if (!token) return res.status(401).json({ message: "No token provided", cookie });
+  if (!token)
+    return res.status(401).json({ message: "No token provided", cookie });
 
   try {
     const payload = verify(token, String(REFRESH_SECRET)) as JwtPayload;
@@ -201,7 +222,7 @@ async function RefreshToken(req : Request, res : Response ){
         role: payload.role,
       },
       String(SECRET_KEY),
-      { expiresIn: "1h" }
+      { expiresIn: "24h" }
     );
 
     return { newAccessToken };
