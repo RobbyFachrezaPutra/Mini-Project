@@ -1,23 +1,30 @@
 import { Request, Response, NextFunction } from "express";
 
 import {
-  GetTicketsSoldByCategoryService,
+  GetTicketsSoldByEventCategoryIdService,
   GetMonthlyRevenueService,
 } from "../services/statistic.service";
 
-async function GetTicketsSoldByCategoryController(
+async function GetTicketsSoldByEventCategoryController(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const data = await GetTicketsSoldByCategoryService();
+    // Ambil organizerId dari user yang sudah login
+    const organizerId = Number(req.params.organizerId);
+    if (!organizerId) {
+      res.status(400).json({ message: "Organizer ID is required" });
+      return;
+    }
+
+    const data = await GetTicketsSoldByEventCategoryIdService(organizerId);
     res.status(200).send({
       message: "Get ticket by category successfully",
       data,
-    }); // Kirim data sebagai response
+    });
   } catch (err) {
-    next(err); // Lanjutkan ke error handler jika ada masalah
+    next(err);
   }
 }
 
@@ -27,18 +34,21 @@ async function GetMonthlyRevenueController(
   next: NextFunction
 ) {
   try {
-    // Panggil service untuk mendapatkan data revenue per bulan
-    const data = await GetMonthlyRevenueService();
+    const organizerId = Number(req.params.organizerId);
+    if (!organizerId) {
+      res.status(400).json({ message: "Organizer ID is required" });
+      return;
+    }
 
-    // Kirimkan response sukses dengan data
+    const data = await GetMonthlyRevenueService(organizerId);
+
     res.status(200).send({
       message: "Monthly revenue data fetched successfully",
       data,
     });
   } catch (err) {
-    // Jika ada error, lanjutkan ke error handler
     next(err);
   }
 }
 
-export { GetMonthlyRevenueController, GetTicketsSoldByCategoryController };
+export { GetMonthlyRevenueController, GetTicketsSoldByEventCategoryController };
