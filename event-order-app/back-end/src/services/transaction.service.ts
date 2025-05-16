@@ -7,13 +7,27 @@ import { connect } from "http2";
 
 async function CreateTransactionService(param: ITransactionParam) {
   try {
+
     const result = await prisma.$transaction(async (tx) => {
+
+      const details = param.details.map((detail) => ({
+        ...detail,
+        subtotal: detail.price * detail.qty,
+      }));
+      const subtotal = details.reduce((acc, detail) => acc + detail.subtotal, 0);
+      // Hitung final_price
+      const voucherAmount = param.voucher_amount || 0;
+      const couponAmount = param.coupon_amount || 0;
+      const finalCouponAmount = (couponAmount * subtotal) / 100;
+      const pointAmount = param.point_amount || 0;
+      const finalPrice = subtotal - voucherAmount - finalCouponAmount - pointAmount;
+
       const data: any = {
         code: param.code,
         voucher_amount: param.voucher_amount,
         point_amount: param.point_amount,
         coupon_amount: param.coupon_amount,
-        final_price: param.final_price,
+        final_price: finalPrice,
         payment_proof: param.payment_proof,
         status: param.status,
         created_at: new Date(),
