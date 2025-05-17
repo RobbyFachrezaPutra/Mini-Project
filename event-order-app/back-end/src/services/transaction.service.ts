@@ -4,6 +4,7 @@ import prisma from "../lib/prisma";
 import { uploadImageToCloudinary } from "../utils/cloudinary";
 import { Prisma } from "@prisma/client";
 import { connect } from "http2";
+import { sendMailEthereal } from "../utils/sendMailEtheral";
 
 async function CreateTransactionService(param: ITransactionParam) {
   try {
@@ -318,15 +319,38 @@ async function GetTransactionByUserIdService(user_id: number) {
   }
 }
 
-async function UpdateTransactionTransIdService(id: number, param: ITransactionParam) {
+async function UpdateTransactionTransIdService(
+  id: number,
+  param: ITransactionParam
+) {
   try {
     const transaction = await prisma.transaction.update({
       where: { id },
       data: {
-        status: "approve"
+        status: "approve",
+      },
+      include: {
+        user: true,
       },
     });
-  
+
+    if (transaction.user && transaction.user.email) {
+      const subject = "Transaksi Anda Diterima";
+      const html = `<p>Halo ${transaction.user.first_name || ""},<br>
+        Transaksi Anda dengan ID <b>${
+          transaction.id
+        }</b> telah <b>di-approve</b>.<br>
+        Terima kasih telah menggunakan layanan kami!</p>`;
+
+      // Kirim email (Ethereal)
+      const previewUrl = await sendMailEthereal(
+        transaction.user.email,
+        subject,
+        html
+      );
+      console.log("Preview Email URL:", previewUrl); // Bisa dicek di console
+    }
+
     return transaction;
   } catch (err) {
     throw err;
@@ -404,5 +428,5 @@ export {
   UploadPaymentProofService,
   GetTransactionByUserIdService,
   GetTransactionByOrganizerIdService,
-  UpdateTransactionTransIdService
+  UpdateTransactionTransIdService,
 };
