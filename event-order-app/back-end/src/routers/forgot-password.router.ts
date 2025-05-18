@@ -1,8 +1,15 @@
 import { Router } from "express";
-import { forgotPasswordController } from "../controllers/forgot-password.controller";
+import {
+  forgotPasswordController,
+  resetPasswordController,
+} from "../controllers/forgot-password.controller";
 
 const router = Router();
 
-router.patch("/", forgotPasswordController);
+// Route untuk mengirim email reset password
+router.post("/", forgotPasswordController);
+
+// Route untuk reset password dengan token
+router.post("/reset", resetPasswordController);
 
 export default router;

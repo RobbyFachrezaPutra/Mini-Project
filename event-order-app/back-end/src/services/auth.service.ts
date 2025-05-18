@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import { hash, genSaltSync, compare } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { sendMailEthereal } from "../utils/sendMailEtheral";
 
 import { SECRET_KEY, REFRESH_SECRET } from "../config";
 
@@ -54,6 +55,23 @@ async function findUserByEmail(email: string) {
     throw err;
   }
 }
+
+async function sendRegistrationEmail(user: {
+  email: string;
+  first_name?: string | null;
+}) {
+  if (user && user.email) {
+    const subject = "Selamat! Registrasi Anda Berhasil";
+    const html = `<p>Halo ${user.first_name || ""},<br>
+      Terima kasih telah mendaftar di <b>Tiketin.com</b><br>
+      Selamat datang dan selamat menggunakan platform kami!</p>`;
+
+    // Kirim email pake fungsi yang kamu punya, misal sendMailEthereal
+    const previewUrl = await sendMailEthereal(user.email, subject, html);
+    console.log("Preview Email URL:", previewUrl);
+  }
+}
+
 async function RegisterService(param: IRegisterParam) {
   try {
     const isExist = await findUserByEmail(param.email);
@@ -131,6 +149,8 @@ async function RegisterService(param: IRegisterParam) {
 
       return user;
     });
+    await sendRegistrationEmail(result);
+
     return result;
   } catch (err) {
     throw err;
