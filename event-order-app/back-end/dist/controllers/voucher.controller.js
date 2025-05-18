@@ -14,6 +14,7 @@ exports.GetVoucherController = GetVoucherController;
 exports.GetAllVoucherController = GetAllVoucherController;
 exports.UpdateVoucherController = UpdateVoucherController;
 exports.DeleteVoucherController = DeleteVoucherController;
+exports.GetVoucherByEventIdController = GetVoucherByEventIdController;
 const voucher_service_1 = require("../services/voucher.service");
 function CreateVoucherController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -77,6 +78,20 @@ function DeleteVoucherController(req, res, next) {
             const data = yield (0, voucher_service_1.DeleteVoucherService)(Number(req.params.id));
             res.status(200).send({
                 message: "Voucher successfully deleted",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetVoucherByEventIdController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, voucher_service_1.GetVoucherByEventIdService)(Number(req.params.event_id));
+            res.status(200).send({
+                message: `Get Voucher with event id ${req.params.event_id}`,
                 data,
             });
         }

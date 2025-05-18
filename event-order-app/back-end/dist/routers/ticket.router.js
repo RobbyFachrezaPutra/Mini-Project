@@ -11,6 +11,7 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.VerifyToken, auth_middleware_1.requireEventOrganizerRole, (0, validator_middleware_1.default)(ticket_schema_1.ticketSchema), ticket_controller_1.CreateTicketController);
 router.get("/", auth_middleware_1.VerifyToken, ticket_controller_1.GetAllTicketController);
+router.get("/by-event/:event_id", auth_middleware_1.VerifyToken, ticket_controller_1.GetTicketByEventIdController);
 router.get("/:id", auth_middleware_1.VerifyToken, ticket_controller_1.GetTicketController);
 router.put("/:id", auth_middleware_1.VerifyToken, auth_middleware_1.requireEventOrganizerRole, (0, validator_middleware_1.default)(ticket_schema_1.ticketSchema), ticket_controller_1.UpdateTicketController);
 router.delete("/:id", auth_middleware_1.VerifyToken, auth_middleware_1.requireEventOrganizerRole, ticket_controller_1.DeleteTicketController);

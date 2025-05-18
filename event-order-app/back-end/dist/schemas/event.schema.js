@@ -12,5 +12,5 @@ exports.eventSchema = zod_1.z.object({
         message: "Available seats must be greater than 0",
         path: ["available_seats"],
     }),
-    status: zod_1.z.enum(["draft", "publish"]),
+    status: zod_1.z.enum(["Draft", "Publish"]),
 });

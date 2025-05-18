@@ -13,7 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProfileService = getProfileService;
-exports.editProfileService = editProfileService;
+exports.updateProfileService = updateProfileService;
+exports.deleteProfilePictureService = deleteProfilePictureService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const cloudinary_1 = require("../utils/cloudinary");
 function getProfileService(email) {
@@ -39,16 +40,36 @@ function getProfileService(email) {
         return user;
     });
 }
-function editProfileService(email, data, file) {
+function updateProfileService(email, data, file) {
     return __awaiter(this, void 0, void 0, function* () {
         if (file) {
             const uploadResult = yield (0, cloudinary_1.uploadImageToCloudinary)(file);
             data.profile_picture = uploadResult === null || uploadResult === void 0 ? void 0 : uploadResult.secure_url;
         }
-        const updatedUser = yield prisma_1.default.user.update({
+        return yield prisma_1.default.user.update({
             where: { email },
             data,
         });
-        return updatedUser;
+    });
+}
+function deleteProfilePictureService(email) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const user = yield prisma_1.default.user.findUnique({
+            where: { email },
+            select: { profile_picture: true },
+        });
+        if ((user === null || user === void 0 ? void 0 : user.profile_picture) &&
+            user.profile_picture !== "Profile_avatar_placeholder_large.png") {
+            try {
+                yield (0, cloudinary_1.deleteFromCloudinary)(user.profile_picture);
+            }
+            catch (err) {
+                console.error("Failed to delete from Cloudinary:", err);
+            }
+        }
+        return yield prisma_1.default.user.update({
+            where: { email },
+            data: { profile_picture: "Profile_avatar_placeholder_large.png" },
+        });
     });
 }

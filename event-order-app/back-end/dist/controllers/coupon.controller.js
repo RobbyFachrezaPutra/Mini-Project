@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GetCouponByUserIdController = GetCouponByUserIdController;
 exports.CreateCouponController = CreateCouponController;
 exports.GetAllCouponController = GetAllCouponController;
 exports.GetCouponController = GetCouponController;
@@ -47,6 +48,20 @@ function GetCouponController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const data = yield (0, coupon_service_1.GetCouponService)(Number(req.params.id));
+            res.status(200).send({
+                message: `Get Coupon with id ${req.params.id}`,
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetCouponByUserIdController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, coupon_service_1.GetCouponByUserIdService)(Number(req.params.user_id));
             res.status(200).send({
                 message: `Get Coupon with id ${req.params.id}`,
                 data,

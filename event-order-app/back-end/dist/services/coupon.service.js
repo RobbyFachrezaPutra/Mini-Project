@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GetCouponByUserIdService = GetCouponByUserIdService;
 exports.CreateCouponService = CreateCouponService;
 exports.GetAllCouponService = GetAllCouponService;
 exports.GetCouponService = GetCouponService;
@@ -32,7 +33,7 @@ function CreateCouponService(param) {
                         created_by_id: param.created_by_id,
                         created_at: new Date(),
                         updated_at: new Date(),
-                        expired_at: expiredAt
+                        expired_at: expiredAt,
                     },
                 });
                 return coupon;
@@ -59,7 +60,7 @@ function GetCouponService(id) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const coupon = yield prisma_1.default.coupon.findUnique({
-                where: { id }
+                where: { id },
             });
             return coupon;
         }
@@ -81,7 +82,7 @@ function UpdateCouponService(id, param) {
                         is_active: param.is_active,
                         created_by_id: param.created_by_id,
                         created_at: new Date(),
-                        updated_at: new Date()
+                        updated_at: new Date(),
                     },
                 });
                 return coupon;
@@ -98,10 +99,28 @@ function DeleteCouponService(id) {
         try {
             const result = yield prisma_1.default.$transaction((prisma) => __awaiter(this, void 0, void 0, function* () {
                 const coupon = yield prisma.coupon.delete({
-                    where: { id }
+                    where: { id },
                 });
                 return coupon;
             }));
+        }
+        catch (err) {
+            throw err;
+        }
+    });
+}
+function GetCouponByUserIdService(userid) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const coupon = yield prisma_1.default.coupon.findMany({
+                where: {
+                    created_by_id: userid,
+                    expired_at: {
+                        gt: new Date(),
+                    },
+                },
+            });
+            return coupon;
         }
         catch (err) {
             throw err;
