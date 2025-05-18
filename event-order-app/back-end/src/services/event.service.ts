@@ -232,8 +232,6 @@ async function GetEventsByOrganizerService(organizerId: number) {
 async function getEventWithAttendees(
   eventId: number
 ): Promise<IEventWithAttendees> {
-  // Jangan disconnect prisma di finally jika menggunakan connection pooling!
-  // Biarkan prisma manage koneksinya sendiri
   const event = await prisma.event.findUnique({
     where: { id: eventId },
     include: {
@@ -248,6 +246,7 @@ async function getEventWithAttendees(
               email: true,
             },
           },
+          reviews: true,
         },
       },
     },
@@ -273,6 +272,7 @@ async function getEventWithAttendees(
       last_name: trx.user.last_name,
       email: trx.user.email,
       status: trx.status,
+      review: trx.reviews?.[0] ?? null,
     }));
 
   return {

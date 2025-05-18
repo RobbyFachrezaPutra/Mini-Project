@@ -17,6 +17,8 @@ import pointRouter from "./routers/point.router";
 import ResetPasswordRouter from "./routers/reset-password.router";
 import StatisticRouter from "./routers/statistic.router";
 import OverviewRouter from "./routers/overview.router";
+import ForgotPasswordRouter from "./routers/forgot-password.router";
+import ReviewRouter from "./routers/review.router";
 
 const port = PORT || 8001;
 const app: Application = express();
@@ -56,6 +58,8 @@ app.use(`${base_url}/reset-password`, ResetPasswordRouter);
 app.use(`${base_url}/points`, pointRouter);
 app.use(`${base_url}/statistic`, StatisticRouter);
 app.use(`${base_url}/overview`, OverviewRouter);
+app.use(`${base_url}/forgot-password`, ForgotPasswordRouter);
+app.use(`${base_url}/review`, ReviewRouter);
 
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);

@@ -3,14 +3,17 @@ import prisma from "../lib/prisma";
 import { hash, genSaltSync, compare } from "bcrypt";
 import { sign, verify } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
+import { sendMailEthereal } from "../utils/sendMailEtheral";
 
 import { SECRET_KEY, REFRESH_SECRET } from "../config";
 
 interface JwtPayload {
+  id : string;
   email: string;
   first_name: string;
   last_name: string;
   role: string;
+  referral_code : string;
 }
 
 async function GetAll() {
@@ -54,6 +57,23 @@ async function findUserByEmail(email: string) {
     throw err;
   }
 }
+
+async function sendRegistrationEmail(user: {
+  email: string;
+  first_name?: string | null;
+}) {
+  if (user && user.email) {
+    const subject = "Selamat! Registrasi Anda Berhasil";
+    const html = `<p>Halo ${user.first_name || ""},<br>
+      Terima kasih telah mendaftar di <b>Tiketin.com</b><br>
+      Selamat datang dan selamat menggunakan platform kami!</p>`;
+
+    // Kirim email pake fungsi yang kamu punya, misal sendMailEthereal
+    const previewUrl = await sendMailEthereal(user.email, subject, html);
+    console.log("Preview Email URL:", previewUrl);
+  }
+}
+
 async function RegisterService(param: IRegisterParam) {
   try {
     const isExist = await findUserByEmail(param.email);
@@ -131,6 +151,8 @@ async function RegisterService(param: IRegisterParam) {
 
       return user;
     });
+    await sendRegistrationEmail(result);
+
     return result;
   } catch (err) {
     throw err;
@@ -214,12 +236,27 @@ async function RefreshToken(req: Request, res: Response) {
   try {
     const payload = verify(token, String(REFRESH_SECRET)) as JwtPayload;
 
+    const newRefreshToken = sign(payload, String(REFRESH_SECRET), {
+      expiresIn: "7d",
+    });
+
+    // Kirim refresh token baru di cookie
+    res.status(200).cookie('refresh_token', newRefreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+
     const newAccessToken = sign(
       {
+        id : payload.id,
         email: payload.email,
         first_name: payload.first_name,
         last_name: payload.last_name,
         role: payload.role,
+        referral_code : payload.referral_code 
       },
       String(SECRET_KEY),
       { expiresIn: "24h" }
