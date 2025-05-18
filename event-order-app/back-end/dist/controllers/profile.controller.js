@@ -10,30 +10,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProfileController = ProfileController;
-exports.editProfileController = editProfileController;
+exports.updateProfileController = updateProfileController;
+exports.deleteProfilePictureController = deleteProfilePictureController;
 const profile_service_1 = require("../services/profile.service");
 function ProfileController(req, res, next) {
-    return __awaiter(this, void 0, void 0, function* () {
-        var _a;
-        try {
-            const userEmail = (_a = req.user) === null || _a === void 0 ? void 0 : _a.email; // Mengambil email dari req.user
-            if (!userEmail) {
-                res.status(400).send({ message: "User  email not found" });
-                return;
-            }
-            const data = yield (0, profile_service_1.getProfileService)(userEmail);
-            res.status(200).send({
-                message: "Berhasil ambil data profile",
-                data,
-            });
-            return;
-        }
-        catch (err) {
-            next(err); // error dilempar ke global handler
-        }
-    });
-}
-function editProfileController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         try {
@@ -42,10 +22,51 @@ function editProfileController(req, res, next) {
                 res.status(400).send({ message: "User email not found" });
                 return;
             }
-            const file = req.file;
-            const data = yield (0, profile_service_1.editProfileService)(userEmail, req.body, file);
+            const data = yield (0, profile_service_1.getProfileService)(userEmail);
             res.status(200).send({
-                message: "Profile updated successfully",
+                message: "Berhasil ambil data profile",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function updateProfileController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const userEmail = (_a = req.user) === null || _a === void 0 ? void 0 : _a.email;
+            if (!userEmail) {
+                res.status(400).send({ message: "User email not found" });
+                return;
+            }
+            const data = yield (0, profile_service_1.updateProfileService)(userEmail, req.body, req.file);
+            res.status(200).send({
+                message: req.file
+                    ? "Foto profil berhasil diupdate"
+                    : "Profil berhasil diupdate",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function deleteProfilePictureController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            const userEmail = (_a = req.user) === null || _a === void 0 ? void 0 : _a.email;
+            if (!userEmail) {
+                res.status(400).send({ message: "User email not found" });
+                return;
+            }
+            const data = yield (0, profile_service_1.deleteProfilePictureService)(userEmail);
+            res.status(200).send({
+                message: "Foto profil berhasil dihapus",
                 data,
             });
         }

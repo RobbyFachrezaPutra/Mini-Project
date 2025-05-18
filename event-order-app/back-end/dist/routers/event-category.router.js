@@ -9,8 +9,8 @@ const validator_middleware_1 = __importDefault(require("../middlewares/validator
 const event_category_schema_1 = require("../schemas/event-category.schema");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
-router.post("/", auth_middleware_1.VerifyToken, auth_middleware_1.requireAdminRole, (0, validator_middleware_1.default)(event_category_schema_1.eventCategorySchema), event_category_controller_1.CreateEventCategoryController);
+router.post("/", auth_middleware_1.VerifyToken, (0, validator_middleware_1.default)(event_category_schema_1.eventCategorySchema), event_category_controller_1.CreateEventCategoryController);
+router.get("/", event_category_controller_1.GetAllEventCategoryController);
 router.get("/:id", auth_middleware_1.VerifyToken, event_category_controller_1.GetEventCategoryController);
-router.get("/", auth_middleware_1.VerifyToken, event_category_controller_1.GetAllEventCategoryController);
 router.put("/:id", auth_middleware_1.VerifyToken, auth_middleware_1.requireAdminRole, (0, validator_middleware_1.default)(event_category_schema_1.eventCategorySchema), event_category_controller_1.UpdateEventCategoryController);
 exports.default = router;

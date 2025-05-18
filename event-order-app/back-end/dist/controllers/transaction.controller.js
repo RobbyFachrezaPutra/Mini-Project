@@ -13,6 +13,10 @@ exports.CreateTransactionController = CreateTransactionController;
 exports.GetTransactionController = GetTransactionController;
 exports.GetAllTransactionController = GetAllTransactionController;
 exports.UpdateTransactionController = UpdateTransactionController;
+exports.UploadPaymentProofController = UploadPaymentProofController;
+exports.GetTransactionByUserIdController = GetTransactionByUserIdController;
+exports.GetTransactionByOrganizerIdController = GetTransactionByOrganizerIdController;
+exports.UpdateTransactionTransIdSController = UpdateTransactionTransIdSController;
 const transaction_service_1 = require("../services/transaction.service");
 function CreateTransactionController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -56,6 +60,20 @@ function GetTransactionController(req, res, next) {
         }
     });
 }
+function GetTransactionByUserIdController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, transaction_service_1.GetTransactionByUserIdService)(Number(req.params.user_id));
+            res.status(200).send({
+                message: `Get Transaction with user id ${req.params.user_id}`,
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
 function UpdateTransactionController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -63,6 +81,52 @@ function UpdateTransactionController(req, res, next) {
             res.status(200).send({
                 message: "Transaction successfully updated ",
                 data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function UploadPaymentProofController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const file = req.file;
+            const data = yield (0, transaction_service_1.UploadPaymentProofService)(req.body, Number(req.params.id), file);
+            res.status(200).send({
+                message: "Event successfully saved ",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function UpdateTransactionTransIdSController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, transaction_service_1.UpdateTransactionTransIdService)(Number(req.params.id), req.body);
+            res.status(200).send({
+                message: "Event successfully updated ",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetTransactionByOrganizerIdController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // Ambil organizer_id dari params
+            const organizerId = Number(req.params.organizer_id);
+            // Panggil service yang sesuai untuk mengambil transaksi berdasarkan organizer_id
+            const formattedTransactions = yield (0, transaction_service_1.GetTransactionByOrganizerIdService)(organizerId);
+            res.status(200).send({
+                message: `Get Transactions for organizer with ID ${organizerId}`,
+                data: formattedTransactions,
             });
         }
         catch (err) {

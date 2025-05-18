@@ -6,5 +6,6 @@ const upload_middleware_1 = require("../middlewares/upload.middleware");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 router.get("/user-profile", auth_middleware_1.VerifyToken, profile_controller_1.ProfileController);
-router.patch("/edit-profile", auth_middleware_1.VerifyToken, (0, upload_middleware_1.uploadSingle)("profile_picture"), profile_controller_1.editProfileController);
+router.patch("/update-profile", auth_middleware_1.VerifyToken, (0, upload_middleware_1.uploadSingle)("profile_picture"), profile_controller_1.updateProfileController);
+router.delete("/delete-profile-picture", auth_middleware_1.VerifyToken, profile_controller_1.deleteProfilePictureController);
 exports.default = router;

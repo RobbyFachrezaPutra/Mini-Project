@@ -11,6 +11,7 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.VerifyToken, auth_middleware_1.requireAdminRole, (0, validator_middleware_1.default)(coupon_schema_1.couponSchema), coupon_controller_1.CreateCouponController);
 router.get("/", auth_middleware_1.VerifyToken, coupon_controller_1.GetAllCouponController);
+router.get("/by-user/:user_id", auth_middleware_1.VerifyToken, coupon_controller_1.GetCouponByUserIdController);
 router.get("/:id", auth_middleware_1.VerifyToken, coupon_controller_1.GetCouponController);
 router.put("/:id", auth_middleware_1.VerifyToken, auth_middleware_1.requireAdminRole, (0, validator_middleware_1.default)(coupon_schema_1.couponSchema), coupon_controller_1.UpdateCouponController);
 router.delete("/:id", auth_middleware_1.VerifyToken, auth_middleware_1.requireAdminRole, coupon_controller_1.DeleteCouponController);

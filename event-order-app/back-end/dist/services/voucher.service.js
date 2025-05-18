@@ -17,6 +17,7 @@ exports.GetVoucherService = GetVoucherService;
 exports.GetAllVoucherService = GetAllVoucherService;
 exports.UpdateVoucherService = UpdateVoucherService;
 exports.DeleteVoucherService = DeleteVoucherService;
+exports.GetVoucherByEventIdService = GetVoucherByEventIdService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 function CreateVoucherService(param) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -103,6 +104,27 @@ function DeleteVoucherService(id) {
                 return user;
             }));
             return result;
+        }
+        catch (err) {
+            throw err;
+        }
+    });
+}
+function GetVoucherByEventIdService(eventId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const Voucher = yield prisma_1.default.voucher.findMany({
+                where: {
+                    event_id: eventId,
+                    sales_start: {
+                        lte: new Date(), // start_date <= now
+                    },
+                    sales_end: {
+                        gte: new Date(), // end_date >= now
+                    },
+                }
+            });
+            return Voucher;
         }
         catch (err) {
             throw err;

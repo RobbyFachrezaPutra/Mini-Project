@@ -14,11 +14,15 @@ exports.GetEventController = GetEventController;
 exports.GetAllEventController = GetAllEventController;
 exports.UpdateEventController = UpdateEventController;
 exports.DeleteEventController = DeleteEventController;
+exports.SearchEventController = SearchEventController;
+exports.GetEventsByOrganizerController = GetEventsByOrganizerController;
+exports.GetAttendeesByEventController = GetAttendeesByEventController;
 const event_service_1 = require("../services/event.service");
 function CreateEventController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const data = yield (0, event_service_1.CreateEventService)(req.body);
+            const file = req.file;
+            const data = yield (0, event_service_1.CreateEventService)(req.body, file);
             res.status(200).send({
                 message: "Event successfully saved ",
                 data,
@@ -33,6 +37,21 @@ function GetAllEventController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const data = yield (0, event_service_1.GetAllEventService)();
+            res.status(200).send({
+                message: "Get All Event",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function SearchEventController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const keyword = req.query.keyword || "";
+            const data = yield (0, event_service_1.SearchEventService)(keyword);
             res.status(200).send({
                 message: "Get All Event",
                 data,
@@ -77,6 +96,48 @@ function DeleteEventController(req, res, next) {
             const data = yield (0, event_service_1.DeleteEventService)(Number(req.params.id));
             res.status(200).send({
                 message: "Event successfully deleted ",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetEventsByOrganizerController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const organizerId = Number(req.params.organizerId);
+            if (isNaN(organizerId)) {
+                res.status(400).json({ message: "Invalid organizerId" });
+                return;
+            }
+            const data = yield (0, event_service_1.GetEventsByOrganizerService)(organizerId);
+            res.status(200).json({
+                message: `Events for organizer ${organizerId} retrieved successfully`,
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetAttendeesByEventController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const eventId = Number(req.params.eventId);
+            if (isNaN(eventId) || eventId <= 0) {
+                res.status(400).json({
+                    success: false,
+                    error: "Invalid event ID",
+                });
+                return;
+            }
+            const data = yield (0, event_service_1.getEventWithAttendees)(eventId);
+            res.status(200).json({
+                success: true,
+                message: `Attendees for event '${data.name}' retrieved successfully`,
                 data,
             });
         }

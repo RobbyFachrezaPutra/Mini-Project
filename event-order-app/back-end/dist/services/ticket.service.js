@@ -17,6 +17,7 @@ exports.GetTicketService = GetTicketService;
 exports.GetAllTicketService = GetAllTicketService;
 exports.UpdateTicketService = UpdateTicketService;
 exports.DeleteTicketService = DeleteTicketService;
+exports.GetTicketByEventIdService = GetTicketByEventIdService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 function CreateTicketService(param) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,6 +26,7 @@ function CreateTicketService(param) {
                 const Ticket = yield prisma.ticket.create({
                     data: {
                         name: param.name,
+                        description: param.description,
                         event_id: param.event_id,
                         type: param.type,
                         price: param.price,
@@ -107,6 +109,19 @@ function DeleteTicketService(id) {
                 return user;
             }));
             return result;
+        }
+        catch (err) {
+            throw err;
+        }
+    });
+}
+function GetTicketByEventIdService(eventId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const Ticket = yield prisma_1.default.ticket.findMany({
+                where: { event_id: eventId }
+            });
+            return Ticket;
         }
         catch (err) {
             throw err;

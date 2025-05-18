@@ -14,6 +14,7 @@ exports.GetTicketController = GetTicketController;
 exports.GetAllTicketController = GetAllTicketController;
 exports.UpdateTicketController = UpdateTicketController;
 exports.DeleteTicketController = DeleteTicketController;
+exports.GetTicketByEventIdController = GetTicketByEventIdController;
 const ticket_service_1 = require("../services/ticket.service");
 function CreateTicketController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -77,6 +78,20 @@ function DeleteTicketController(req, res, next) {
             const data = yield (0, ticket_service_1.DeleteTicketService)(Number(req.params.id));
             res.status(200).send({
                 message: "Ticket successfully deleted",
+                data,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function GetTicketByEventIdController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, ticket_service_1.GetTicketByEventIdService)(Number(req.params.event_id));
+            res.status(200).send({
+                message: `Get Ticket with event id ${req.params.event_id}`,
                 data,
             });
         }
