@@ -79,7 +79,8 @@ function GetEventController(req, res, next) {
 function UpdateEventController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const data = yield (0, event_service_1.UpdateEventService)(Number(req.params.id), req.body);
+            const file = req.file;
+            const data = yield (0, event_service_1.UpdateEventService)(Number(req.params.id), req.body, file);
             res.status(200).send({
                 message: "Event successfully updated ",
                 data,

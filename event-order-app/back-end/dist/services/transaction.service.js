@@ -20,6 +20,7 @@ exports.UploadPaymentProofService = UploadPaymentProofService;
 exports.GetTransactionByUserIdService = GetTransactionByUserIdService;
 exports.GetTransactionByOrganizerIdService = GetTransactionByOrganizerIdService;
 exports.UpdateTransactionTransIdService = UpdateTransactionTransIdService;
+exports.UpdateTransactionRejectService = UpdateTransactionRejectService;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const cloudinary_1 = require("../utils/cloudinary");
 const sendMailEtheral_1 = require("../utils/sendMailEtheral");
@@ -206,7 +207,7 @@ function UpdateTransactionService(id, param) {
                     },
                 });
                 if (param.coupon_id &&
-                    (param.status === "expired" || param.status === "cancel")) {
+                    (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
                     yield prisma.coupon_Usage.delete({
                         where: {
                             coupon_id: param.coupon_id,
@@ -216,7 +217,7 @@ function UpdateTransactionService(id, param) {
                     });
                 }
                 if (param.point_amount &&
-                    (param.status === "expired" || param.status === "cancel")) {
+                    (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
                     const point_usages = yield prisma.point_Usage.findMany({
                         where: {
                             transaction_id: transaction.id,
@@ -237,7 +238,7 @@ function UpdateTransactionService(id, param) {
                 }
                 for (const detail of param.details) {
                     if (param.event_id &&
-                        (param.status === "expired" || param.status === "cancel")) {
+                        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
                         yield prisma.ticket.update({
                             where: { id: detail.ticket_id },
                             data: {
@@ -248,7 +249,7 @@ function UpdateTransactionService(id, param) {
                         });
                     }
                     if (detail.ticket_id &&
-                        (param.status === "expired" || param.status === "cancel")) {
+                        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
                         yield prisma.event.update({
                             where: { id: param.event_id },
                             data: {
@@ -316,7 +317,7 @@ function UpdateTransactionTransIdService(id, param) {
             if (transaction.user && transaction.user.email) {
                 const subject = "Transaksi Anda Diterima";
                 const html = `<p>Halo ${transaction.user.first_name || ""},<br>
-        Transaksi Anda dengan ID <b>${transaction.id}</b> telah <b>di-approve</b>.<br>
+        Transaksi Anda dengan Code <b>${transaction.code}</b> telah <b>di-approve</b>.<br>
         Terima kasih telah menggunakan layanan kami!</p>`;
                 // Kirim email (Ethereal)
                 const previewUrl = yield (0, sendMailEtheral_1.sendMailEthereal)(transaction.user.email, subject, html);
@@ -386,6 +387,98 @@ function GetTransactionByOrganizerIdService(organizerId) {
         catch (err) {
             console.error("Error fetching transactions: ", err);
             throw new Error("Failed to fetch transactions");
+        }
+    });
+}
+function UpdateTransactionRejectService(id, param) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        try {
+            let transactionResult;
+            // Step 1: Jalankan semua query DB dalam satu transaksi
+            transactionResult = yield prisma_1.default.$transaction((prisma) => __awaiter(this, void 0, void 0, function* () {
+                var _a, _b, _c;
+                const transaction = yield prisma.transaction.update({
+                    where: { id },
+                    data: {
+                        status: "rejected",
+                        updated_at: new Date(),
+                    },
+                    include: {
+                        user: true,
+                        voucher: true,
+                        coupon: true,
+                        detail: true,
+                        event: true,
+                    },
+                });
+                const updates = [];
+                // Hapus coupon usage jika ada
+                if (((_a = transaction.coupon) === null || _a === void 0 ? void 0 : _a.id) &&
+                    ["expired", "cancel", "rejected"].includes(transaction.status)) {
+                    updates.push(prisma.coupon_Usage.delete({
+                        where: {
+                            coupon_id: transaction.coupon.id,
+                            user_id: (_b = transaction.user) === null || _b === void 0 ? void 0 : _b.id,
+                            transaction_id: transaction.id,
+                        },
+                    }));
+                }
+                // Update point usage jika ada
+                if (transaction.point_amount &&
+                    ["expired", "cancel", "rejected"].includes(transaction.status)) {
+                    const point_usages = yield prisma.point_Usage.findMany({
+                        where: { transaction_id: transaction.id },
+                    });
+                    for (const point_usage of point_usages) {
+                        updates.push(prisma.point.update({
+                            where: { id: point_usage.id },
+                            data: {
+                                point: { increment: point_usage.used },
+                            },
+                        }));
+                    }
+                }
+                // Update remaining ticket & available seats
+                if (["expired", "cancel", "rejected"].includes(transaction.status)) {
+                    for (const detail of transaction.detail) {
+                        if (detail.ticket_id) {
+                            updates.push(prisma.ticket.update({
+                                where: { id: detail.ticket_id },
+                                data: {
+                                    remaining: { increment: detail.qty },
+                                },
+                            }));
+                        }
+                        if ((_c = transaction.event) === null || _c === void 0 ? void 0 : _c.id) {
+                            updates.push(prisma.event.update({
+                                where: { id: transaction.event.id },
+                                data: {
+                                    available_seats: { increment: detail.qty },
+                                },
+                            }));
+                        }
+                    }
+                }
+                // Jalankan semua query paralel
+                yield Promise.all(updates);
+                return transaction;
+            }));
+            // Step 2: Kirim email di luar transaksi DB (lebih aman)
+            if ((_a = transactionResult.user) === null || _a === void 0 ? void 0 : _a.email) {
+                const subject = "Transaksi Anda Ditolak";
+                const html = `<p>Halo ${transactionResult.user.first_name || ""},<br>
+        Transaksi Anda dengan Code <b>${transactionResult.code}</b> telah <b>ditolak</b>.<br>
+        Terima kasih telah menggunakan layanan kami!</p>`;
+                // Kirim email
+                const previewUrl = yield (0, sendMailEtheral_1.sendMailEthereal)(transactionResult.user.email, subject, html);
+                console.log("Preview Email URL:", previewUrl);
+            }
+            return transactionResult;
+        }
+        catch (err) {
+            console.error("Error in UpdateTransactionRejectService:", err);
+            throw err;
         }
     });
 }

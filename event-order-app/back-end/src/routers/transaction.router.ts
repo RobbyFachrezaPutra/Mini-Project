@@ -7,7 +7,8 @@ import {
   UploadPaymentProofController,
   GetTransactionByUserIdController,
   GetTransactionByOrganizerIdController,
-  UpdateTransactionTransIdSController
+  UpdateTransactionTransIdSController,
+  UpdateTransactionRejectSController
 } from "../controllers/transaction.controller";
 import ReqValidator from "../middlewares/validator.middleware";
 import { transactionSchema } from "../schemas/transaction.schema";
@@ -46,6 +47,11 @@ router.put(
 router.put(
   "/approve/:id",
   UpdateTransactionTransIdSController
+);
+
+router.put(
+  "/reject/:id",
+  UpdateTransactionRejectSController
 );
 
 export default router;
