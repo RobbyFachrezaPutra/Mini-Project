@@ -122,6 +122,7 @@ function GetEventService(id) {
                     tickets: true,
                     category: true,
                     organizer: true,
+                    vouchers: true,
                 },
             });
             return event;
@@ -131,26 +132,77 @@ function GetEventService(id) {
         }
     });
 }
-function UpdateEventService(id, param) {
+function UpdateEventService(eventId, param, file) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            if (file) {
+                const uploadResult = yield (0, cloudinary_1.uploadImageToCloudinary)(file);
+                param.banner_url = uploadResult === null || uploadResult === void 0 ? void 0 : uploadResult.secure_url;
+            }
             const result = yield prisma_1.default.$transaction((prisma) => __awaiter(this, void 0, void 0, function* () {
-                const event = yield prisma.event.update({
-                    where: { id },
+                // Parse tickets
+                let parsedTickets = [];
+                if (typeof param.tickets === "string") {
+                    parsedTickets = JSON.parse(param.tickets).map((t) => ({
+                        name: t.name,
+                        type: t.type,
+                        description: t.description,
+                        sales_start: t.sales_start,
+                        sales_end: t.sales_end,
+                        created_at: t.created_at,
+                        updated_at: t.updated_at,
+                        quota: Number(t.quota),
+                        remaining: Number(t.remaining),
+                        price: Number(t.price),
+                        created_by_id: Number(t.created_by_id),
+                    }));
+                }
+                // Parse vouchers
+                let parsedVouchers = [];
+                if (typeof param.vouchers === "string") {
+                    parsedVouchers = JSON.parse(param.vouchers).map((v) => ({
+                        code: v.code,
+                        description: v.description,
+                        discount_amount: Number(v.discount_amount),
+                        sales_start: v.sales_start,
+                        sales_end: v.sales_end,
+                        created_at: v.created_at,
+                        updated_at: v.updated_at,
+                        created_by_id: Number(v.created_by_id),
+                    }));
+                }
+                // Update event
+                const updatedEvent = yield prisma.event.update({
+                    where: { id: eventId },
                     data: {
                         name: param.name,
-                        description: param.description,
-                        category_id: param.category_id,
+                        description: JSON.parse(param.description),
+                        category_id: Number(param.category_id),
                         location: param.location,
                         start_date: param.start_date,
                         end_date: param.end_date,
-                        available_seats: param.available_seats,
+                        available_seats: Number(param.available_seats),
                         banner_url: param.banner_url,
                         status: param.status,
                         updated_at: new Date(),
                     },
                 });
-                return event;
+                // Hapus tickets & vouchers lama
+                yield prisma.ticket.deleteMany({ where: { event_id: eventId } });
+                yield prisma.voucher.deleteMany({ where: { event_id: eventId } });
+                // Tambahkan ulang tickets
+                if (parsedTickets.length > 0) {
+                    yield prisma.ticket.createMany({
+                        data: parsedTickets.map(t => (Object.assign(Object.assign({}, t), { event_id: eventId }))),
+                    });
+                }
+                // Tambahkan ulang vouchers
+                if (parsedVouchers.length > 0) {
+                    yield prisma.voucher.createMany({
+                        data: parsedVouchers.map(v => (Object.assign(Object.assign({}, v), { event_id: eventId }))),
+                    });
+                }
+                return updatedEvent;
             }));
             return result;
         }

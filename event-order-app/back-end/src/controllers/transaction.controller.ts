@@ -7,7 +7,8 @@ import {
   UploadPaymentProofService,
   GetTransactionByUserIdService,
   GetTransactionByOrganizerIdService,
-  UpdateTransactionTransIdService
+  UpdateTransactionTransIdService,
+  UpdateTransactionRejectService
 } from "../services/transaction.service";
 
 async function CreateTransactionController(
@@ -165,6 +166,26 @@ async function GetTransactionByOrganizerIdController(
   }
 }
 
+async function UpdateTransactionRejectSController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const data = await UpdateTransactionRejectService(
+      Number(req.params.id),
+      req.body
+    );
+
+    res.status(200).send({
+      message: "Event successfully updated ",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export {
   CreateTransactionController,
   GetTransactionController,
@@ -173,5 +194,6 @@ export {
   UploadPaymentProofController,
   GetTransactionByUserIdController,
   GetTransactionByOrganizerIdController,
-  UpdateTransactionTransIdSController
+  UpdateTransactionTransIdSController,
+  UpdateTransactionRejectSController
 };

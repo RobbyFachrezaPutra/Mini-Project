@@ -18,4 +18,5 @@ router.get("/", auth_middleware_1.VerifyToken, transaction_controller_1.GetAllTr
 router.get("/:id", auth_middleware_1.VerifyToken, transaction_controller_1.GetTransactionController);
 router.put("/:id", auth_middleware_1.VerifyToken, (0, validator_middleware_1.default)(transaction_schema_1.transactionSchema), transaction_controller_1.UpdateTransactionController);
 router.put("/approve/:id", transaction_controller_1.UpdateTransactionTransIdSController);
+router.put("/reject/:id", transaction_controller_1.UpdateTransactionRejectSController);
 exports.default = router;

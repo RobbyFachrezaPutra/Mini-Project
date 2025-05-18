@@ -114,6 +114,7 @@ async function GetEventService(id: number) {
         tickets: true,
         category: true,
         organizer: true,
+        vouchers: true,
       },
     });
 
@@ -123,26 +124,93 @@ async function GetEventService(id: number) {
   }
 }
 
-async function UpdateEventService(id: number, param: IEventParam) {
+async function UpdateEventService(
+  eventId: number,
+  param: IEventParam,
+  file?: Express.Multer.File
+) {
   try {
+    if (file) {
+      const uploadResult = await uploadImageToCloudinary(file);
+      param.banner_url = uploadResult?.secure_url;
+    }
+
     const result = await prisma.$transaction(async (prisma) => {
-      const event = await prisma.event.update({
-        where: { id },
+      // Parse tickets
+      let parsedTickets: ITicketParam[] = [];
+      if (typeof param.tickets === "string") {
+        parsedTickets = JSON.parse(param.tickets).map((t: any) => ({
+          name: t.name,
+          type: t.type,
+          description: t.description,
+          sales_start: t.sales_start,
+          sales_end: t.sales_end,
+          created_at: t.created_at,
+          updated_at: t.updated_at,
+          quota: Number(t.quota),
+          remaining: Number(t.remaining),
+          price: Number(t.price),
+          created_by_id: Number(t.created_by_id),
+        }));
+      }
+
+      // Parse vouchers
+      let parsedVouchers: IVoucherParam[] = [];
+      if (typeof param.vouchers === "string") {
+        parsedVouchers = JSON.parse(param.vouchers).map((v: any) => ({
+          code: v.code,
+          description: v.description,
+          discount_amount: Number(v.discount_amount),
+          sales_start: v.sales_start,
+          sales_end: v.sales_end,
+          created_at: v.created_at,
+          updated_at: v.updated_at,
+          created_by_id: Number(v.created_by_id),
+        }));
+      }
+
+      // Update event
+      const updatedEvent = await prisma.event.update({
+        where: { id: eventId },
         data: {
           name: param.name,
-          description: param.description,
-          category_id: param.category_id,
+          description: JSON.parse(param.description),
+          category_id: Number(param.category_id),
           location: param.location,
           start_date: param.start_date,
           end_date: param.end_date,
-          available_seats: param.available_seats,
+          available_seats: Number(param.available_seats),
           banner_url: param.banner_url,
           status: param.status,
           updated_at: new Date(),
         },
       });
 
-      return event;
+      // Hapus tickets & vouchers lama
+      await prisma.ticket.deleteMany({ where: { event_id: eventId } });
+      await prisma.voucher.deleteMany({ where: { event_id: eventId } });
+
+      // Tambahkan ulang tickets
+      if (parsedTickets.length > 0) {
+        await prisma.ticket.createMany({
+          data: parsedTickets.map(t => ({
+            ...t,
+            event_id: eventId,
+          })),
+        });
+      }
+
+      // Tambahkan ulang vouchers
+      if (parsedVouchers.length > 0) {
+        await prisma.voucher.createMany({
+          data: parsedVouchers.map(v => ({
+            ...v,
+            event_id: eventId,
+          })),
+        });
+      }
+
+      return updatedEvent;
     });
 
     return result;

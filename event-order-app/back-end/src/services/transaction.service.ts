@@ -210,7 +210,7 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
       if (
         param.coupon_id &&
-        (param.status === "expired" || param.status === "cancel")
+        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
       ) {
         await prisma.coupon_Usage.delete({
           where: {
@@ -223,7 +223,7 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
       if (
         param.point_amount &&
-        (param.status === "expired" || param.status === "cancel")
+        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
       ) {
         const point_usages = await prisma.point_Usage.findMany({
           where: {
@@ -248,7 +248,7 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
       for (const detail of param.details) {
         if (
           param.event_id &&
-          (param.status === "expired" || param.status === "cancel")
+          (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
         ) {
           await prisma.ticket.update({
             where: { id: detail.ticket_id },
@@ -262,7 +262,7 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
         if (
           detail.ticket_id &&
-          (param.status === "expired" || param.status === "cancel")
+          (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
         ) {
           await prisma.event.update({
             where: { id: param.event_id },
@@ -337,8 +337,8 @@ async function UpdateTransactionTransIdService(
     if (transaction.user && transaction.user.email) {
       const subject = "Transaksi Anda Diterima";
       const html = `<p>Halo ${transaction.user.first_name || ""},<br>
-        Transaksi Anda dengan ID <b>${
-          transaction.id
+        Transaksi Anda dengan Code <b>${
+          transaction.code
         }</b> telah <b>di-approve</b>.<br>
         Terima kasih telah menggunakan layanan kami!</p>`;
 
@@ -420,6 +420,123 @@ async function GetTransactionByOrganizerIdService(organizerId: number) {
   }
 }
 
+async function UpdateTransactionRejectService(id: number, param: ITransactionParam) {
+  try {
+    let transactionResult: any;
+
+    // Step 1: Jalankan semua query DB dalam satu transaksi
+    transactionResult = await prisma.$transaction(async (prisma) => {
+      const transaction = await prisma.transaction.update({
+        where: { id },
+        data: {
+          status: "rejected",
+          updated_at: new Date(),
+        },
+        include: {
+          user: true,
+          voucher: true,
+          coupon: true,
+          detail: true,
+          event: true,
+        },
+      });
+
+      const updates: Promise<any>[] = [];
+
+      // Hapus coupon usage jika ada
+      if (
+        transaction.coupon?.id &&
+        ["expired", "cancel", "rejected"].includes(transaction.status)
+      ) {
+        updates.push(
+          prisma.coupon_Usage.delete({
+            where: {
+              coupon_id: transaction.coupon.id,
+              user_id: transaction.user?.id!,
+              transaction_id: transaction.id,
+            },
+          })
+        );
+      }
+
+      // Update point usage jika ada
+      if (
+        transaction.point_amount &&
+        ["expired", "cancel", "rejected"].includes(transaction.status)
+      ) {
+        const point_usages = await prisma.point_Usage.findMany({
+          where: { transaction_id: transaction.id },
+        });
+
+        for (const point_usage of point_usages) {
+          updates.push(
+            prisma.point.update({
+              where: { id: point_usage.id },
+              data: {
+                point: { increment: point_usage.used },
+              },
+            })
+          );
+        }
+      }
+
+      // Update remaining ticket & available seats
+      if (["expired", "cancel", "rejected"].includes(transaction.status)) {
+        for (const detail of transaction.detail) {
+          if (detail.ticket_id) {
+            updates.push(
+              prisma.ticket.update({
+                where: { id: detail.ticket_id },
+                data: {
+                  remaining: { increment: detail.qty },
+                },
+              })
+            );
+          }
+
+          if (transaction.event?.id) {
+            updates.push(
+              prisma.event.update({
+                where: { id: transaction.event.id },
+                data: {
+                  available_seats: { increment: detail.qty },
+                },
+              })
+            );
+          }
+        }
+      }
+
+      // Jalankan semua query paralel
+      await Promise.all(updates);
+
+      return transaction;
+    });
+
+    // Step 2: Kirim email di luar transaksi DB (lebih aman)
+    if (transactionResult.user?.email) {
+      const subject = "Transaksi Anda Ditolak";
+      const html = `<p>Halo ${transactionResult.user.first_name || ""},<br>
+        Transaksi Anda dengan Code <b>${transactionResult.code}</b> telah <b>ditolak</b>.<br>
+        Terima kasih telah menggunakan layanan kami!</p>`;
+
+      // Kirim email
+      const previewUrl = await sendMailEthereal(
+        transactionResult.user.email,
+        subject,
+        html
+      );
+      console.log("Preview Email URL:", previewUrl);
+    }
+
+    return transactionResult;
+  } catch (err) {
+    console.error("Error in UpdateTransactionRejectService:", err);
+    throw err;
+  }
+}
+
+
 export {
   CreateTransactionService,
   GetTransactionService,
@@ -429,4 +546,5 @@ export {
   GetTransactionByUserIdService,
   GetTransactionByOrganizerIdService,
   UpdateTransactionTransIdService,
+  UpdateTransactionRejectService
 };

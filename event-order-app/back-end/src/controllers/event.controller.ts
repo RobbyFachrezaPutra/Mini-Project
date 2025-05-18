@@ -86,7 +86,8 @@ async function UpdateEventController(
   next: NextFunction
 ) {
   try {
-    const data = await UpdateEventService(Number(req.params.id), req.body);
+    const file = req.file;
+    const data = await UpdateEventService(Number(req.params.id), req.body, file);
 
     res.status(200).send({
       message: "Event successfully updated ",

@@ -58,7 +58,7 @@ router.put(
   "/:id",
   VerifyToken,
   requireEventOrganizerRole,
-  ReqValidator(eventSchema),
+  uploadSingle("banner_url"),
   UpdateEventController
 );
 

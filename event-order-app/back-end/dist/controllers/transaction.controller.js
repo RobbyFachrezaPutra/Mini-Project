@@ -17,6 +17,7 @@ exports.UploadPaymentProofController = UploadPaymentProofController;
 exports.GetTransactionByUserIdController = GetTransactionByUserIdController;
 exports.GetTransactionByOrganizerIdController = GetTransactionByOrganizerIdController;
 exports.UpdateTransactionTransIdSController = UpdateTransactionTransIdSController;
+exports.UpdateTransactionRejectSController = UpdateTransactionRejectSController;
 const transaction_service_1 = require("../services/transaction.service");
 function CreateTransactionController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -127,6 +128,20 @@ function GetTransactionByOrganizerIdController(req, res, next) {
             res.status(200).send({
                 message: `Get Transactions for organizer with ID ${organizerId}`,
                 data: formattedTransactions,
+            });
+        }
+        catch (err) {
+            next(err);
+        }
+    });
+}
+function UpdateTransactionRejectSController(req, res, next) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const data = yield (0, transaction_service_1.UpdateTransactionRejectService)(Number(req.params.id), req.body);
+            res.status(200).send({
+                message: "Event successfully updated ",
+                data,
             });
         }
         catch (err) {
