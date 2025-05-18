@@ -3,7 +3,7 @@ import {
   LoginService,
   RegisterService,
   GetAll,
-  RefreshToken
+  RefreshToken,
 } from "../services/auth.service";
 
 import { IUserReqParam } from "../custom";
@@ -41,23 +41,24 @@ async function LoginController(
       return;
     }
 
-    res.status(200).
-    cookie("access_token", data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',  // hanya aktif di production (misal di Vercel)
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    }).
-    cookie("refresh_token", data.refreshToken, {
-      httpOnly: true,
-      secure: true, // cookie only over HTTPS in prod
-      sameSite: "none", // or "none" for cross-site, but "none" requires HTTPS
-      path: "/",
-    }).
-    send({
-      message: "Login Berhasil",
-      data: data.user,
-    });
+    res
+      .status(200)
+      .cookie("access_token", data.token, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production", // hanya aktif di production (misal di Vercel)
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .cookie("refresh_token", data.refreshToken, {
+        httpOnly: false,
+        secure: true, // cookie only over HTTPS in prod
+        sameSite: "none", // or "none" for cross-site, but "none" requires HTTPS
+        path: "/",
+      })
+      .send({
+        message: "Login Berhasil",
+        data: data.user,
+      });
   } catch (err) {
     next(err);
   }
@@ -78,24 +79,33 @@ async function UserController(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-async function RefreshTokenController(req: Request, res: Response, next: NextFunction) {
-  try{
-     const accessToken = await RefreshToken(req, res);
+async function RefreshTokenController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  try {
+    const accessToken = await RefreshToken(req, res);
 
-    res.status(200).    cookie("access_token", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    }).
-    send({
-      message: "Refresh token berhasil"
-    });
-  } catch (err)
-  {
+    res
+      .status(200)
+      .cookie("access_token", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      })
+      .send({
+        message: "Refresh token berhasil",
+      });
+  } catch (err) {
     next();
   }
 }
 
-
-export { RegisterController, LoginController, UserController, RefreshTokenController };
+export {
+  RegisterController,
+  LoginController,
+  UserController,
+  RefreshTokenController,
+};
