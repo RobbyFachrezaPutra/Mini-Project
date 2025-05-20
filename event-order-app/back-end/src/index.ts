@@ -2,7 +2,7 @@ import cors from "cors";
 import express, { Application, Request, Response, NextFunction } from "express";
 import path from "path";
 
-import { PORT, FE_URL } from "./config";
+import { PORT, FE_URL, FE_URL_PRODUCTION } from "./config";
 
 import AuthRouter from "./routers/auth.router";
 import CouponRouter from "./routers/coupon.router";
@@ -25,9 +25,12 @@ const app: Application = express();
 const base_url: string = "/api/eventorder";
 
 app.use(cookieParser());
+
+const allowedOrigins = [FE_URL, FE_URL_PRODUCTION].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: FE_URL,
+    origin: allowedOrigins,
     credentials: true,
   })
 );
