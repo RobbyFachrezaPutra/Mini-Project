@@ -1,11 +1,12 @@
-import { createEtherealTransporter } from "./nodemailer";
+import { getTransporter, initEtherealTransporter } from "./nodemailer";
 
 export async function sendMailEthereal(
   to: string,
   subject: string,
   html: string
 ) {
-  const { transporter } = await createEtherealTransporter();
+  await initEtherealTransporter();
+  const transporter = getTransporter();
 
   const info = await transporter.sendMail({
     from: '"Event Order App" <no-reply@eventorder.com>',
@@ -14,6 +15,10 @@ export async function sendMailEthereal(
     html,
   });
 
-  // Return preview URL untuk dicek di browser
-  return require("nodemailer").getTestMessageUrl(info);
+  const previewUrl = require("nodemailer").getTestMessageUrl(info);
+
+  // 🔥 Tambahin log ini biar pasti keliatan
+  console.log("📬 EMAIL PREVIEW URL:", previewUrl);
+
+  return previewUrl;
 }

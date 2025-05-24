@@ -224,7 +224,7 @@ function RefreshToken(req, res) {
                 expiresIn: "7d",
             });
             // Kirim refresh token baru di cookie
-            res.status(200).cookie('refresh_token', newRefreshToken, {
+            res.status(200).cookie("refresh_token", newRefreshToken, {
                 httpOnly: true,
                 secure: true,
                 sameSite: "none",
@@ -236,7 +236,7 @@ function RefreshToken(req, res) {
                 first_name: payload.first_name,
                 last_name: payload.last_name,
                 role: payload.role,
-                referral_code: payload.referral_code
+                referral_code: payload.referral_code,
             }, String(config_1.SECRET_KEY), { expiresIn: "24h" });
             return { newAccessToken };
         }

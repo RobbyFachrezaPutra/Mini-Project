@@ -8,20 +8,22 @@ import { sendMailEthereal } from "../utils/sendMailEtheral";
 
 async function CreateTransactionService(param: ITransactionParam) {
   try {
-
     const result = await prisma.$transaction(async (tx) => {
-
       const details = param.details.map((detail) => ({
         ...detail,
         subtotal: detail.price * detail.qty,
       }));
-      const subtotal = details.reduce((acc, detail) => acc + detail.subtotal, 0);
+      const subtotal = details.reduce(
+        (acc, detail) => acc + detail.subtotal,
+        0
+      );
       // Hitung final_price
       const voucherAmount = param.voucher_amount || 0;
       const couponAmount = param.coupon_amount || 0;
       const finalCouponAmount = (couponAmount * subtotal) / 100;
       const pointAmount = param.point_amount || 0;
-      const finalPrice = subtotal - voucherAmount - finalCouponAmount - pointAmount;
+      const finalPrice =
+        subtotal - voucherAmount - finalCouponAmount - pointAmount;
 
       const data: any = {
         code: param.code,
@@ -210,7 +212,9 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
       if (
         param.coupon_id &&
-        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
+        (param.status === "expired" ||
+          param.status === "cancel" ||
+          param.status === "rejected")
       ) {
         await prisma.coupon_Usage.delete({
           where: {
@@ -223,7 +227,9 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
       if (
         param.point_amount &&
-        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
+        (param.status === "expired" ||
+          param.status === "cancel" ||
+          param.status === "rejected")
       ) {
         const point_usages = await prisma.point_Usage.findMany({
           where: {
@@ -248,7 +254,9 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
       for (const detail of param.details) {
         if (
           param.event_id &&
-          (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
+          (param.status === "expired" ||
+            param.status === "cancel" ||
+            param.status === "rejected")
         ) {
           await prisma.ticket.update({
             where: { id: detail.ticket_id },
@@ -262,7 +270,9 @@ async function UpdateTransactionService(id: number, param: ITransactionParam) {
 
         if (
           detail.ticket_id &&
-          (param.status === "expired" || param.status === "cancel" || param.status === "rejected")
+          (param.status === "expired" ||
+            param.status === "cancel" ||
+            param.status === "rejected")
         ) {
           await prisma.event.update({
             where: { id: param.event_id },
@@ -323,6 +333,7 @@ async function UpdateTransactionTransIdService(
   id: number,
   param: ITransactionParam
 ) {
+  console.log(">>> UpdateTransactionTransIdService dipanggil dengan id:", id);
   try {
     const transaction = await prisma.transaction.update({
       where: { id },
@@ -334,6 +345,8 @@ async function UpdateTransactionTransIdService(
       },
     });
 
+    console.log(">>> Transaction berhasil diupdate:", transaction);
+
     if (transaction.user && transaction.user.email) {
       const subject = "Transaksi Anda Diterima";
       const html = `<p>Halo ${transaction.user.first_name || ""},<br>
@@ -342,13 +355,12 @@ async function UpdateTransactionTransIdService(
         }</b> telah <b>di-approve</b>.<br>
         Terima kasih telah menggunakan layanan kami!</p>`;
 
-      // Kirim email (Ethereal)
       const previewUrl = await sendMailEthereal(
         transaction.user.email,
         subject,
         html
       );
-      console.log("Preview Email URL:", previewUrl); // Bisa dicek di console
+      console.log("Preview Email URL:", previewUrl);
     }
 
     return transaction;
@@ -420,7 +432,10 @@ async function GetTransactionByOrganizerIdService(organizerId: number) {
   }
 }
 
-async function UpdateTransactionRejectService(id: number, param: ITransactionParam) {
+async function UpdateTransactionRejectService(
+  id: number,
+  param: ITransactionParam
+) {
   try {
     let transactionResult: any;
 
@@ -517,7 +532,9 @@ async function UpdateTransactionRejectService(id: number, param: ITransactionPar
     if (transactionResult.user?.email) {
       const subject = "Transaksi Anda Ditolak";
       const html = `<p>Halo ${transactionResult.user.first_name || ""},<br>
-        Transaksi Anda dengan Code <b>${transactionResult.code}</b> telah <b>ditolak</b>.<br>
+        Transaksi Anda dengan Code <b>${
+          transactionResult.code
+        }</b> telah <b>ditolak</b>.<br>
         Terima kasih telah menggunakan layanan kami!</p>`;
 
       // Kirim email
@@ -536,7 +553,6 @@ async function UpdateTransactionRejectService(id: number, param: ITransactionPar
   }
 }
 
-
 export {
   CreateTransactionService,
   GetTransactionService,
@@ -546,5 +562,5 @@ export {
   GetTransactionByUserIdService,
   GetTransactionByOrganizerIdService,
   UpdateTransactionTransIdService,
-  UpdateTransactionRejectService
+  UpdateTransactionRejectService,
 };

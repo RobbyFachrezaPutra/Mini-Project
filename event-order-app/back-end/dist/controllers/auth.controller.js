@@ -42,21 +42,20 @@ function LoginController(req, res, next) {
             res
                 .status(200)
                 .cookie("access_token", data.token, {
-                httpOnly: true, // Lebih aman
-                secure: true,
-                sameSite: "none",
+                httpOnly: false,
+                secure: process.env.NODE_ENV === "production", // hanya aktif di production (misal di Vercel)
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
                 .cookie("refresh_token", data.refreshToken, {
-                httpOnly: true, // Lebih aman
-                secure: true,
-                sameSite: "none",
+                httpOnly: false,
+                secure: true, // cookie only over HTTPS in prod
+                sameSite: "none", // or "none" for cross-site, but "none" requires HTTPS
                 path: "/",
             })
                 .send({
                 message: "Login Berhasil",
                 data: data.user,
-                token: data.token, // Kirim token dalam response body juga
             });
         }
         catch (err) {
@@ -83,23 +82,21 @@ function UserController(req, res, next) {
 function RefreshTokenController(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const result = yield (0, auth_service_1.RefreshToken)(req, res);
-            const accessToken = result.newAccessToken;
+            const accessToken = yield (0, auth_service_1.RefreshToken)(req, res);
             res
                 .status(200)
                 .cookie("access_token", accessToken, {
-                httpOnly: true, // Lebih aman
-                secure: true,
-                sameSite: "none",
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
                 maxAge: 7 * 24 * 60 * 60 * 1000,
             })
                 .send({
                 message: "Refresh token berhasil",
-                token: accessToken, // Kirim token dalam response body juga
             });
         }
         catch (err) {
-            next(err);
+            next();
         }
     });
 }
