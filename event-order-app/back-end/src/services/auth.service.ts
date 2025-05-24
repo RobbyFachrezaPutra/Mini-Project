@@ -8,12 +8,12 @@ import { sendMailEthereal } from "../utils/sendMailEtheral";
 import { SECRET_KEY, REFRESH_SECRET } from "../config";
 
 interface JwtPayload {
-  id : string;
+  id: string;
   email: string;
   first_name: string;
   last_name: string;
   role: string;
-  referral_code : string;
+  referral_code: string;
 }
 
 async function GetAll() {
@@ -241,22 +241,21 @@ async function RefreshToken(req: Request, res: Response) {
     });
 
     // Kirim refresh token baru di cookie
-    res.status(200).cookie('refresh_token', newRefreshToken, {
+    res.status(200).cookie("refresh_token", newRefreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-
     const newAccessToken = sign(
       {
-        id : payload.id,
+        id: payload.id,
         email: payload.email,
         first_name: payload.first_name,
         last_name: payload.last_name,
         role: payload.role,
-        referral_code : payload.referral_code 
+        referral_code: payload.referral_code,
       },
       String(SECRET_KEY),
       { expiresIn: "24h" }

@@ -26,8 +26,9 @@ const port = config_1.PORT || 8001;
 const app = (0, express_1.default)();
 const base_url = "/api/eventorder";
 app.use(cookieParser());
+const allowedOrigins = [config_1.FE_URL, config_1.FE_URL_PRODUCTION].filter(Boolean);
 app.use((0, cors_1.default)({
-    origin: config_1.FE_URL,
+    origin: allowedOrigins,
     credentials: true,
 }));
 app.use(express_1.default.json());

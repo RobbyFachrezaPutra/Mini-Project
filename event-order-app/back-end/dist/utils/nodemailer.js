@@ -12,26 +12,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createEtherealTransporter = createEtherealTransporter;
+exports.initEtherealTransporter = initEtherealTransporter;
+exports.getTransporter = getTransporter;
 const nodemailer_1 = __importDefault(require("nodemailer"));
-/**
- * Membuat transporter Nodemailer menggunakan akun Ethereal (untuk testing).
- * Fungsi ini async karena createTestAccount dan createTransport async.
- */
-function createEtherealTransporter() {
+let transporter = null;
+// Fungsi inisialisasi transporter sekali saja
+function initEtherealTransporter() {
     return __awaiter(this, void 0, void 0, function* () {
-        // Membuat akun Ethereal baru
+        if (transporter)
+            return transporter; // kalau sudah ada, pakai yang lama
         const testAccount = yield nodemailer_1.default.createTestAccount();
-        // Membuat transporter dengan credential Ethereal
-        const transporter = nodemailer_1.default.createTransport({
+        transporter = nodemailer_1.default.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
-            secure: false, // true untuk port 465, false untuk 587
+            secure: false,
             auth: {
                 user: testAccount.user,
                 pass: testAccount.pass,
             },
         });
-        return { transporter, testAccount };
+        console.log("Ethereal account user:", testAccount.user);
+        return transporter;
     });
+}
+// Fungsi untuk akses transporter yang sudah di-init
+function getTransporter() {
+    if (!transporter)
+        throw new Error("Transporter belum diinisialisasi. Panggil initEtherealTransporter dulu.");
+    return transporter;
 }

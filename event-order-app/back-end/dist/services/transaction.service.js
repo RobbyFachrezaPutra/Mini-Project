@@ -207,7 +207,9 @@ function UpdateTransactionService(id, param) {
                     },
                 });
                 if (param.coupon_id &&
-                    (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
+                    (param.status === "expired" ||
+                        param.status === "cancel" ||
+                        param.status === "rejected")) {
                     yield prisma.coupon_Usage.delete({
                         where: {
                             coupon_id: param.coupon_id,
@@ -217,7 +219,9 @@ function UpdateTransactionService(id, param) {
                     });
                 }
                 if (param.point_amount &&
-                    (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
+                    (param.status === "expired" ||
+                        param.status === "cancel" ||
+                        param.status === "rejected")) {
                     const point_usages = yield prisma.point_Usage.findMany({
                         where: {
                             transaction_id: transaction.id,
@@ -238,7 +242,9 @@ function UpdateTransactionService(id, param) {
                 }
                 for (const detail of param.details) {
                     if (param.event_id &&
-                        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
+                        (param.status === "expired" ||
+                            param.status === "cancel" ||
+                            param.status === "rejected")) {
                         yield prisma.ticket.update({
                             where: { id: detail.ticket_id },
                             data: {
@@ -249,7 +255,9 @@ function UpdateTransactionService(id, param) {
                         });
                     }
                     if (detail.ticket_id &&
-                        (param.status === "expired" || param.status === "cancel" || param.status === "rejected")) {
+                        (param.status === "expired" ||
+                            param.status === "cancel" ||
+                            param.status === "rejected")) {
                         yield prisma.event.update({
                             where: { id: param.event_id },
                             data: {
@@ -304,6 +312,7 @@ function GetTransactionByUserIdService(user_id) {
 }
 function UpdateTransactionTransIdService(id, param) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log(">>> UpdateTransactionTransIdService dipanggil dengan id:", id);
         try {
             const transaction = yield prisma_1.default.transaction.update({
                 where: { id },
@@ -314,14 +323,14 @@ function UpdateTransactionTransIdService(id, param) {
                     user: true,
                 },
             });
+            console.log(">>> Transaction berhasil diupdate:", transaction);
             if (transaction.user && transaction.user.email) {
                 const subject = "Transaksi Anda Diterima";
                 const html = `<p>Halo ${transaction.user.first_name || ""},<br>
         Transaksi Anda dengan Code <b>${transaction.code}</b> telah <b>di-approve</b>.<br>
         Terima kasih telah menggunakan layanan kami!</p>`;
-                // Kirim email (Ethereal)
                 const previewUrl = yield (0, sendMailEtheral_1.sendMailEthereal)(transaction.user.email, subject, html);
-                console.log("Preview Email URL:", previewUrl); // Bisa dicek di console
+                console.log("Preview Email URL:", previewUrl);
             }
             return transaction;
         }

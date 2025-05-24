@@ -13,14 +13,17 @@ exports.sendMailEthereal = sendMailEthereal;
 const nodemailer_1 = require("./nodemailer");
 function sendMailEthereal(to, subject, html) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { transporter } = yield (0, nodemailer_1.createEtherealTransporter)();
+        yield (0, nodemailer_1.initEtherealTransporter)();
+        const transporter = (0, nodemailer_1.getTransporter)();
         const info = yield transporter.sendMail({
             from: '"Event Order App" <no-reply@eventorder.com>',
             to,
             subject,
             html,
         });
-        // Return preview URL untuk dicek di browser
-        return require("nodemailer").getTestMessageUrl(info);
+        const previewUrl = require("nodemailer").getTestMessageUrl(info);
+        // 🔥 Tambahin log ini biar pasti keliatan
+        console.log("📬 EMAIL PREVIEW URL:", previewUrl);
+        return previewUrl;
     });
 }
